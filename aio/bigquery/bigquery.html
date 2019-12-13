@@ -51,7 +51,7 @@ else:
 API_ROOT = &#39;https://www.googleapis.com/bigquery/v2&#39;
 SCOPES = [
     &#39;https://www.googleapis.com/auth/bigquery.insertdata&#39;,
-    &#39;https://www.googleapis.com/auth/bigquery&#39;
+    &#39;https://www.googleapis.com/auth/bigquery&#39;,
 ]
 
 
@@ -84,6 +84,28 @@ class Table:
         # pylint: disable=unused-argument
         return uuid.uuid4().hex
 
+    def _make_copy_body(
+            self, source_project: str, destination_project: str,
+            destination_dataset: str,
+            destination_table: str) -&gt; Dict[str, Any]:
+        return {
+            &#39;configuration&#39;: {
+                &#39;copy&#39;: {
+                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
+                    &#39;destinationTable&#39;: {
+                        &#39;projectId&#39;: destination_project,
+                        &#39;datasetId&#39;: destination_dataset,
+                        &#39;tableId&#39;: destination_table,
+                    },
+                    &#39;sourceTable&#39;: {
+                        &#39;projectId&#39;: source_project,
+                        &#39;datasetId&#39;: self.dataset_name,
+                        &#39;tableId&#39;: self.table_name,
+                    }
+                }
+            }
+        }
+
     @staticmethod
     def _make_insert_body(
             rows: List[Dict[str, Any]], *, skip_invalid: bool,
@@ -95,7 +117,7 @@ class Table:
             &#39;ignoreUnknownValues&#39;: ignore_unknown,
             &#39;rows&#39;: [{
                 &#39;insertId&#39;: insert_id_fn(row),
-                &#39;json&#39;: row
+                &#39;json&#39;: row,
             } for row in rows],
         }
 
@@ -110,32 +132,10 @@ class Table:
                     &#39;destinationTable&#39;: {
                         &#39;projectId&#39;: project,
                         &#39;datasetId&#39;: self.dataset_name,
-                        &#39;tableId&#39;: self.table_name
-                    }
-                }
-            }
-        }
-
-    def _make_copy_body(
-            self, source_project: str, destination_project: str,
-            destination_dataset: str,
-            destination_table: str) -&gt; Dict[str, Any]:
-        return {
-            &#39;configuration&#39;: {
-                &#39;copy&#39;: {
-                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
-                    &#39;destinationTable&#39;: {
-                        &#39;datasetId&#39;: destination_dataset,
-                        &#39;projectId&#39;: destination_project,
-                        &#39;tableId&#39;: destination_table
+                        &#39;tableId&#39;: self.table_name,
                     },
-                    &#39;sourceTable&#39;: {
-                        &#39;datasetId&#39;: self.dataset_name,
-                        &#39;projectId&#39;: source_project,
-                        &#39;tableId&#39;: self.table_name
-                    }
-                }
-            }
+                },
+            },
         }
 
     async def headers(self) -&gt; Dict[str, str]:
@@ -144,8 +144,62 @@ class Table:
             &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
         }
 
-    # https://cloud.google.com/bigquery/docs/reference/rest/v2/
-    # tabledata/insertAll
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    async def copy(self, destination_project: str, destination_dataset: str,
+                   destination_table: str, session: Optional[Session] = None,
+                   timeout: int = 60) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
+        project = await self.project()
+        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
+        body = self._make_copy_body(
+            project, destination_project,
+            destination_dataset, destination_table)
+        payload = json.dumps(body).encode(&#39;utf-8&#39;)
+
+        headers = await self.headers()
+        headers.update({
+            &#39;Content-Length&#39;: str(len(payload)),
+            &#39;Content-Type&#39;: &#39;application/json&#39;,
+        })
+
+        s = AioSession(session) if session else self.session
+        resp = await s.post(url, data=payload, headers=headers, params=None,
+                            timeout=timeout)
+        return await resp.json()
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
+    async def delete(self,
+                     session: Optional[Session] = None,
+                     timeout: int = 60) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Deletes the table specified by tableId from the dataset.&#34;&#34;&#34;
+        project = await self.project()
+        url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
+               f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
+
+        headers = await self.headers()
+
+        s = AioSession(session) if session else self.session
+        resp = await s.delete(url, headers=headers, params=None,
+                              timeout=timeout)
+        return await resp.json()
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
+    async def get(
+            self, session: Optional[Session] = None,
+            timeout: int = 60) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Gets the specified table resource by table ID.&#34;&#34;&#34;
+        project = await self.project()
+        url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
+               f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
+
+        headers = await self.headers()
+
+        s = AioSession(session) if session else self.session
+        resp = await s.get(url, headers=headers, timeout=timeout)
+        return await resp.json()
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tabledata/insertAll
     async def insert(
             self, rows: List[Dict[str, Any]], skip_invalid: bool = False,
             ignore_unknown: bool = True, session: Optional[Session] = None,
@@ -177,7 +231,7 @@ class Table:
         headers = await self.headers()
         headers.update({
             &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;
+            &#39;Content-Type&#39;: &#39;application/json&#39;,
         })
 
         s = AioSession(session) if session else self.session
@@ -185,91 +239,29 @@ class Table:
                             timeout=timeout)
         return await resp.json()
 
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
     async def load(
             self, source_uris: List[str], session: Optional[Session] = None,
             timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;
-        Loads entities from storage to big query.
-
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Loads entities from storage to BigQuery.&#34;&#34;&#34;
         if not source_uris:
             return {}
 
         project = await self.project()
         url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
         body = self._make_load_body(source_uris, project)
         payload = json.dumps(body).encode(&#39;utf-8&#39;)
-        headers = await self.headers()
-        headers.update({
-            &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;
-        })
-        s = AioSession(session) if session else self.session
-        resp = await s.post(url, data=payload, headers=headers, params=None,
-                            timeout=timeout)
-        return await resp.json()
-
-    async def copy(self, destination_project: str, destination_dataset: str,
-                   destination_table: str, session: Optional[Session] = None,
-                   timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;
-        Copy BQ table to another table in BQ
-
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-        &#34;&#34;&#34;
-        if not (destination_project and destination_dataset
-                and destination_table):
-            return {}
-
-        project = await self.project()
-        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
-        body = self._make_copy_body(
-            project, destination_project,
-            destination_dataset, destination_table)
-        payload = json.dumps(body).encode(&#39;utf-8&#39;)
 
         headers = await self.headers()
         headers.update({
             &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;
+            &#39;Content-Type&#39;: &#39;application/json&#39;,
         })
+
         s = AioSession(session) if session else self.session
         resp = await s.post(url, data=payload, headers=headers, params=None,
                             timeout=timeout)
-        return await resp.json()
-
-    async def get(
-            self, session: Optional[Session] = None,
-            timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;
-        Gets the specified table resource by table ID
-
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
-        &#34;&#34;&#34;
-        project = await self.project()
-        url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
-               f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
-        headers = await self.headers()
-        s = AioSession(session) if session else self.session
-        resp = await s.get(url, headers=headers, timeout=timeout)
-        return await resp.json()
-
-    async def delete(self,
-                     session: Optional[Session] = None,
-                     timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;
-        Deletes the table specified by tableId from the dataset.
-
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
-        &#34;&#34;&#34;
-        project = await self.project()
-        url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
-               f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
-        headers = await self.headers()
-        s = AioSession(session) if session else self.session
-        resp = await s.delete(
-            url, headers=headers, params=None, timeout=timeout)
         return await resp.json()</code></pre>
 </details>
 </section>
@@ -321,6 +313,28 @@ class Table:
         # pylint: disable=unused-argument
         return uuid.uuid4().hex
 
+    def _make_copy_body(
+            self, source_project: str, destination_project: str,
+            destination_dataset: str,
+            destination_table: str) -&gt; Dict[str, Any]:
+        return {
+            &#39;configuration&#39;: {
+                &#39;copy&#39;: {
+                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
+                    &#39;destinationTable&#39;: {
+                        &#39;projectId&#39;: destination_project,
+                        &#39;datasetId&#39;: destination_dataset,
+                        &#39;tableId&#39;: destination_table,
+                    },
+                    &#39;sourceTable&#39;: {
+                        &#39;projectId&#39;: source_project,
+                        &#39;datasetId&#39;: self.dataset_name,
+                        &#39;tableId&#39;: self.table_name,
+                    }
+                }
+            }
+        }
+
     @staticmethod
     def _make_insert_body(
             rows: List[Dict[str, Any]], *, skip_invalid: bool,
@@ -332,7 +346,7 @@ class Table:
             &#39;ignoreUnknownValues&#39;: ignore_unknown,
             &#39;rows&#39;: [{
                 &#39;insertId&#39;: insert_id_fn(row),
-                &#39;json&#39;: row
+                &#39;json&#39;: row,
             } for row in rows],
         }
 
@@ -347,32 +361,10 @@ class Table:
                     &#39;destinationTable&#39;: {
                         &#39;projectId&#39;: project,
                         &#39;datasetId&#39;: self.dataset_name,
-                        &#39;tableId&#39;: self.table_name
-                    }
-                }
-            }
-        }
-
-    def _make_copy_body(
-            self, source_project: str, destination_project: str,
-            destination_dataset: str,
-            destination_table: str) -&gt; Dict[str, Any]:
-        return {
-            &#39;configuration&#39;: {
-                &#39;copy&#39;: {
-                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
-                    &#39;destinationTable&#39;: {
-                        &#39;datasetId&#39;: destination_dataset,
-                        &#39;projectId&#39;: destination_project,
-                        &#39;tableId&#39;: destination_table
+                        &#39;tableId&#39;: self.table_name,
                     },
-                    &#39;sourceTable&#39;: {
-                        &#39;datasetId&#39;: self.dataset_name,
-                        &#39;projectId&#39;: source_project,
-                        &#39;tableId&#39;: self.table_name
-                    }
-                }
-            }
+                },
+            },
         }
 
     async def headers(self) -&gt; Dict[str, str]:
@@ -381,8 +373,62 @@ class Table:
             &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
         }
 
-    # https://cloud.google.com/bigquery/docs/reference/rest/v2/
-    # tabledata/insertAll
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    async def copy(self, destination_project: str, destination_dataset: str,
+                   destination_table: str, session: Optional[Session] = None,
+                   timeout: int = 60) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
+        project = await self.project()
+        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
+        body = self._make_copy_body(
+            project, destination_project,
+            destination_dataset, destination_table)
+        payload = json.dumps(body).encode(&#39;utf-8&#39;)
+
+        headers = await self.headers()
+        headers.update({
+            &#39;Content-Length&#39;: str(len(payload)),
+            &#39;Content-Type&#39;: &#39;application/json&#39;,
+        })
+
+        s = AioSession(session) if session else self.session
+        resp = await s.post(url, data=payload, headers=headers, params=None,
+                            timeout=timeout)
+        return await resp.json()
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
+    async def delete(self,
+                     session: Optional[Session] = None,
+                     timeout: int = 60) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Deletes the table specified by tableId from the dataset.&#34;&#34;&#34;
+        project = await self.project()
+        url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
+               f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
+
+        headers = await self.headers()
+
+        s = AioSession(session) if session else self.session
+        resp = await s.delete(url, headers=headers, params=None,
+                              timeout=timeout)
+        return await resp.json()
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
+    async def get(
+            self, session: Optional[Session] = None,
+            timeout: int = 60) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Gets the specified table resource by table ID.&#34;&#34;&#34;
+        project = await self.project()
+        url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
+               f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
+
+        headers = await self.headers()
+
+        s = AioSession(session) if session else self.session
+        resp = await s.get(url, headers=headers, timeout=timeout)
+        return await resp.json()
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tabledata/insertAll
     async def insert(
             self, rows: List[Dict[str, Any]], skip_invalid: bool = False,
             ignore_unknown: bool = True, session: Optional[Session] = None,
@@ -414,7 +460,7 @@ class Table:
         headers = await self.headers()
         headers.update({
             &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;
+            &#39;Content-Type&#39;: &#39;application/json&#39;,
         })
 
         s = AioSession(session) if session else self.session
@@ -422,91 +468,29 @@ class Table:
                             timeout=timeout)
         return await resp.json()
 
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
     async def load(
             self, source_uris: List[str], session: Optional[Session] = None,
             timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;
-        Loads entities from storage to big query.
-
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Loads entities from storage to BigQuery.&#34;&#34;&#34;
         if not source_uris:
             return {}
 
         project = await self.project()
         url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
         body = self._make_load_body(source_uris, project)
         payload = json.dumps(body).encode(&#39;utf-8&#39;)
-        headers = await self.headers()
-        headers.update({
-            &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;
-        })
-        s = AioSession(session) if session else self.session
-        resp = await s.post(url, data=payload, headers=headers, params=None,
-                            timeout=timeout)
-        return await resp.json()
-
-    async def copy(self, destination_project: str, destination_dataset: str,
-                   destination_table: str, session: Optional[Session] = None,
-                   timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;
-        Copy BQ table to another table in BQ
-
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-        &#34;&#34;&#34;
-        if not (destination_project and destination_dataset
-                and destination_table):
-            return {}
-
-        project = await self.project()
-        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
-        body = self._make_copy_body(
-            project, destination_project,
-            destination_dataset, destination_table)
-        payload = json.dumps(body).encode(&#39;utf-8&#39;)
 
         headers = await self.headers()
         headers.update({
             &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;
+            &#39;Content-Type&#39;: &#39;application/json&#39;,
         })
+
         s = AioSession(session) if session else self.session
         resp = await s.post(url, data=payload, headers=headers, params=None,
                             timeout=timeout)
-        return await resp.json()
-
-    async def get(
-            self, session: Optional[Session] = None,
-            timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;
-        Gets the specified table resource by table ID
-
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
-        &#34;&#34;&#34;
-        project = await self.project()
-        url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
-               f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
-        headers = await self.headers()
-        s = AioSession(session) if session else self.session
-        resp = await s.get(url, headers=headers, timeout=timeout)
-        return await resp.json()
-
-    async def delete(self,
-                     session: Optional[Session] = None,
-                     timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;
-        Deletes the table specified by tableId from the dataset.
-
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
-        &#34;&#34;&#34;
-        project = await self.project()
-        url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
-               f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
-        headers = await self.headers()
-        s = AioSession(session) if session else self.session
-        resp = await s.delete(
-            url, headers=headers, params=None, timeout=timeout)
         return await resp.json()</code></pre>
 </details>
 <h3>Methods</h3>
@@ -515,8 +499,7 @@ class Table:
 <span>async def <span class="ident">copy</span></span>(<span>self, destination_project, destination_dataset, destination_table, session=None, timeout=60)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Copy BQ table to another table in BQ</p>
-<p><a href="https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert">https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert</a></p></section>
+<section class="desc"><p>Copy BQ table to another table in BQ</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -524,17 +507,10 @@ class Table:
 <pre><code class="python">async def copy(self, destination_project: str, destination_dataset: str,
                destination_table: str, session: Optional[Session] = None,
                timeout: int = 60) -&gt; Dict[str, Any]:
-    &#34;&#34;&#34;
-    Copy BQ table to another table in BQ
-
-    https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-    &#34;&#34;&#34;
-    if not (destination_project and destination_dataset
-            and destination_table):
-        return {}
-
+    &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
     project = await self.project()
     url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
     body = self._make_copy_body(
         project, destination_project,
         destination_dataset, destination_table)
@@ -543,8 +519,9 @@ class Table:
     headers = await self.headers()
     headers.update({
         &#39;Content-Length&#39;: str(len(payload)),
-        &#39;Content-Type&#39;: &#39;application/json&#39;
+        &#39;Content-Type&#39;: &#39;application/json&#39;,
     })
+
     s = AioSession(session) if session else self.session
     resp = await s.post(url, data=payload, headers=headers, params=None,
                         timeout=timeout)
@@ -555,8 +532,7 @@ class Table:
 <span>async def <span class="ident">delete</span></span>(<span>self, session=None, timeout=60)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Deletes the table specified by tableId from the dataset.</p>
-<p><a href="https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete">https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete</a></p></section>
+<section class="desc"><p>Deletes the table specified by tableId from the dataset.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -564,18 +540,16 @@ class Table:
 <pre><code class="python">async def delete(self,
                  session: Optional[Session] = None,
                  timeout: int = 60) -&gt; Dict[str, Any]:
-    &#34;&#34;&#34;
-    Deletes the table specified by tableId from the dataset.
-
-    https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Deletes the table specified by tableId from the dataset.&#34;&#34;&#34;
     project = await self.project()
     url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
            f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
+
     headers = await self.headers()
+
     s = AioSession(session) if session else self.session
-    resp = await s.delete(
-        url, headers=headers, params=None, timeout=timeout)
+    resp = await s.delete(url, headers=headers, params=None,
+                          timeout=timeout)
     return await resp.json()</code></pre>
 </details>
 </dd>
@@ -583,8 +557,7 @@ class Table:
 <span>async def <span class="ident">get</span></span>(<span>self, session=None, timeout=60)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Gets the specified table resource by table ID</p>
-<p><a href="https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get">https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get</a></p></section>
+<section class="desc"><p>Gets the specified table resource by table ID.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -592,15 +565,13 @@ class Table:
 <pre><code class="python">async def get(
         self, session: Optional[Session] = None,
         timeout: int = 60) -&gt; Dict[str, Any]:
-    &#34;&#34;&#34;
-    Gets the specified table resource by table ID
-
-    https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Gets the specified table resource by table ID.&#34;&#34;&#34;
     project = await self.project()
     url = (f&#39;{API_ROOT}/projects/{project}/datasets/&#39;
            f&#39;{self.dataset_name}/tables/{self.table_name}&#39;)
+
     headers = await self.headers()
+
     s = AioSession(session) if session else self.session
     resp = await s.get(url, headers=headers, timeout=timeout)
     return await resp.json()</code></pre>
@@ -667,7 +638,7 @@ the rows failed to get inserted.</p></section>
     headers = await self.headers()
     headers.update({
         &#39;Content-Length&#39;: str(len(payload)),
-        &#39;Content-Type&#39;: &#39;application/json&#39;
+        &#39;Content-Type&#39;: &#39;application/json&#39;,
     })
 
     s = AioSession(session) if session else self.session
@@ -680,8 +651,7 @@ the rows failed to get inserted.</p></section>
 <span>async def <span class="ident">load</span></span>(<span>self, source_uris, session=None, timeout=60)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Loads entities from storage to big query.</p>
-<p><a href="https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert">https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert</a></p></section>
+<section class="desc"><p>Loads entities from storage to BigQuery.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -689,23 +659,22 @@ the rows failed to get inserted.</p></section>
 <pre><code class="python">async def load(
         self, source_uris: List[str], session: Optional[Session] = None,
         timeout: int = 60) -&gt; Dict[str, Any]:
-    &#34;&#34;&#34;
-    Loads entities from storage to big query.
-
-    https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Loads entities from storage to BigQuery.&#34;&#34;&#34;
     if not source_uris:
         return {}
 
     project = await self.project()
     url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
     body = self._make_load_body(source_uris, project)
     payload = json.dumps(body).encode(&#39;utf-8&#39;)
+
     headers = await self.headers()
     headers.update({
         &#39;Content-Length&#39;: str(len(payload)),
-        &#39;Content-Type&#39;: &#39;application/json&#39;
+        &#39;Content-Type&#39;: &#39;application/json&#39;,
     })
+
     s = AioSession(session) if session else self.session
     resp = await s.post(url, data=payload, headers=headers, params=None,
                         timeout=timeout)
