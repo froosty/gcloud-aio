@@ -59,6 +59,7 @@ else:
 API_ROOT = &#39;https://www.googleapis.com/bigquery/v2&#39;
 SCOPES = [
     &#39;https://www.googleapis.com/auth/bigquery.insertdata&#39;,
+    &#39;https://www.googleapis.com/auth/bigquery&#39;
 ]
 
 
@@ -107,13 +108,53 @@ class Table(object):
             } for row in rows],
         }
 
+    def _make_load_body(
+            self, source_uris           , project     )                  :
+        return {
+            &#39;configuration&#39;: {
+                &#39;load&#39;: {
+                    &#39;sourceUris&#39;: source_uris,
+                    &#39;sourceFormat&#39;: &#39;DATASTORE_BACKUP&#39;,
+                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
+                    &#39;destinationTable&#39;: {
+                        &#39;projectId&#39;: project,
+                        &#39;datasetId&#39;: self.dataset_name,
+                        &#39;tableId&#39;: self.table_name
+                    }
+                }
+            }
+        }
+
+    def _make_copy_body(
+            self, source_project     , destination_project     ,
+            destination_dataset     ,
+            destination_table     )                  :
+        return {
+            &#39;configuration&#39;: {
+                &#39;copy&#39;: {
+                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
+                    &#39;destinationTable&#39;: {
+                        &#39;datasetId&#39;: destination_dataset,
+                        &#39;projectId&#39;: destination_project,
+                        &#39;tableId&#39;: destination_table
+                    },
+                    &#39;sourceTable&#39;: {
+                        &#39;datasetId&#39;: self.dataset_name,
+                        &#39;projectId&#39;: source_project,
+                        &#39;tableId&#39;: self.table_name
+                    }
+                }
+            }
+        }
+
     def headers(self)                  :
         token = self.token.get()
         return {
             &#39;Authorization&#39;: &#39;Bearer {}&#39;.format((token)),
         }
 
-    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tabledata/insertAll
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/
+    # tabledata/insertAll
     def insert(
             self, rows                      , skip_invalid       = False,
             ignore_unknown       = True, session                    = None,
@@ -152,6 +193,93 @@ class Table(object):
         s = SyncSession(session) if session else self.session
         resp = s.post(url, data=payload, headers=headers, params=None,
                             timeout=timeout)
+        return resp.json()
+
+    def load(
+            self, source_uris           , session                    = None,
+            timeout      = 60)                  :
+        &#34;&#34;&#34;
+        Loads entities from storage to big query.
+
+        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+        &#34;&#34;&#34;
+        if not source_uris:
+            return {}
+
+        project = self.project()
+        url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
+        body = self._make_load_body(source_uris, project)
+        payload = json.dumps(body).encode(&#39;utf-8&#39;)
+        headers = self.headers()
+        headers.update({
+            &#39;Content-Length&#39;: str(len(payload)),
+            &#39;Content-Type&#39;: &#39;application/json&#39;
+        })
+        s = SyncSession(session) if session else self.session
+        resp = s.post(url, data=payload, headers=headers, params=None,
+                            timeout=timeout)
+        return resp.json()
+
+    def copy(self, destination_project     , destination_dataset     ,
+                   destination_table     , session                    = None,
+                   timeout      = 60)                  :
+        &#34;&#34;&#34;
+        Copy BQ table to another table in BQ
+
+        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+        &#34;&#34;&#34;
+        if not (destination_project and destination_dataset
+                and destination_table):
+            return {}
+
+        project = self.project()
+        url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
+        body = self._make_copy_body(
+            project, destination_project,
+            destination_dataset, destination_table)
+        payload = json.dumps(body).encode(&#39;utf-8&#39;)
+
+        headers = self.headers()
+        headers.update({
+            &#39;Content-Length&#39;: str(len(payload)),
+            &#39;Content-Type&#39;: &#39;application/json&#39;
+        })
+        s = SyncSession(session) if session else self.session
+        resp = s.post(url, data=payload, headers=headers, params=None,
+                            timeout=timeout)
+        return resp.json()
+
+    def get(
+            self, session                    = None,
+            timeout      = 60)                  :
+        &#34;&#34;&#34;
+        Gets the specified table resource by table ID
+
+        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
+        &#34;&#34;&#34;
+        project = self.project()
+        url = (&#39;{}/projects/{}/datasets/&#39;
+               &#39;{}/tables/{}&#39;.format((API_ROOT), (project), (self.dataset_name), (self.table_name)))
+        headers = self.headers()
+        s = SyncSession(session) if session else self.session
+        resp = s.get(url, headers=headers, timeout=timeout)
+        return resp.json()
+
+    def delete(self,
+                     session                    = None,
+                     timeout      = 60)                  :
+        &#34;&#34;&#34;
+        Deletes the table specified by tableId from the dataset.
+
+        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
+        &#34;&#34;&#34;
+        project = self.project()
+        url = (&#39;{}/projects/{}/datasets/&#39;
+               &#39;{}/tables/{}&#39;.format((API_ROOT), (project), (self.dataset_name), (self.table_name)))
+        headers = self.headers()
+        s = SyncSession(session) if session else self.session
+        resp = s.delete(
+            url, headers=headers, params=None, timeout=timeout)
         return resp.json()</code></pre>
 </details>
 </section>
@@ -219,13 +347,53 @@ class Table(object):
             } for row in rows],
         }
 
+    def _make_load_body(
+            self, source_uris           , project     )                  :
+        return {
+            &#39;configuration&#39;: {
+                &#39;load&#39;: {
+                    &#39;sourceUris&#39;: source_uris,
+                    &#39;sourceFormat&#39;: &#39;DATASTORE_BACKUP&#39;,
+                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
+                    &#39;destinationTable&#39;: {
+                        &#39;projectId&#39;: project,
+                        &#39;datasetId&#39;: self.dataset_name,
+                        &#39;tableId&#39;: self.table_name
+                    }
+                }
+            }
+        }
+
+    def _make_copy_body(
+            self, source_project     , destination_project     ,
+            destination_dataset     ,
+            destination_table     )                  :
+        return {
+            &#39;configuration&#39;: {
+                &#39;copy&#39;: {
+                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
+                    &#39;destinationTable&#39;: {
+                        &#39;datasetId&#39;: destination_dataset,
+                        &#39;projectId&#39;: destination_project,
+                        &#39;tableId&#39;: destination_table
+                    },
+                    &#39;sourceTable&#39;: {
+                        &#39;datasetId&#39;: self.dataset_name,
+                        &#39;projectId&#39;: source_project,
+                        &#39;tableId&#39;: self.table_name
+                    }
+                }
+            }
+        }
+
     def headers(self)                  :
         token = self.token.get()
         return {
             &#39;Authorization&#39;: &#39;Bearer {}&#39;.format((token)),
         }
 
-    # https://cloud.google.com/bigquery/docs/reference/rest/v2/tabledata/insertAll
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/
+    # tabledata/insertAll
     def insert(
             self, rows                      , skip_invalid       = False,
             ignore_unknown       = True, session                    = None,
@@ -264,10 +432,192 @@ class Table(object):
         s = SyncSession(session) if session else self.session
         resp = s.post(url, data=payload, headers=headers, params=None,
                             timeout=timeout)
+        return resp.json()
+
+    def load(
+            self, source_uris           , session                    = None,
+            timeout      = 60)                  :
+        &#34;&#34;&#34;
+        Loads entities from storage to big query.
+
+        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+        &#34;&#34;&#34;
+        if not source_uris:
+            return {}
+
+        project = self.project()
+        url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
+        body = self._make_load_body(source_uris, project)
+        payload = json.dumps(body).encode(&#39;utf-8&#39;)
+        headers = self.headers()
+        headers.update({
+            &#39;Content-Length&#39;: str(len(payload)),
+            &#39;Content-Type&#39;: &#39;application/json&#39;
+        })
+        s = SyncSession(session) if session else self.session
+        resp = s.post(url, data=payload, headers=headers, params=None,
+                            timeout=timeout)
+        return resp.json()
+
+    def copy(self, destination_project     , destination_dataset     ,
+                   destination_table     , session                    = None,
+                   timeout      = 60)                  :
+        &#34;&#34;&#34;
+        Copy BQ table to another table in BQ
+
+        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+        &#34;&#34;&#34;
+        if not (destination_project and destination_dataset
+                and destination_table):
+            return {}
+
+        project = self.project()
+        url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
+        body = self._make_copy_body(
+            project, destination_project,
+            destination_dataset, destination_table)
+        payload = json.dumps(body).encode(&#39;utf-8&#39;)
+
+        headers = self.headers()
+        headers.update({
+            &#39;Content-Length&#39;: str(len(payload)),
+            &#39;Content-Type&#39;: &#39;application/json&#39;
+        })
+        s = SyncSession(session) if session else self.session
+        resp = s.post(url, data=payload, headers=headers, params=None,
+                            timeout=timeout)
+        return resp.json()
+
+    def get(
+            self, session                    = None,
+            timeout      = 60)                  :
+        &#34;&#34;&#34;
+        Gets the specified table resource by table ID
+
+        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
+        &#34;&#34;&#34;
+        project = self.project()
+        url = (&#39;{}/projects/{}/datasets/&#39;
+               &#39;{}/tables/{}&#39;.format((API_ROOT), (project), (self.dataset_name), (self.table_name)))
+        headers = self.headers()
+        s = SyncSession(session) if session else self.session
+        resp = s.get(url, headers=headers, timeout=timeout)
+        return resp.json()
+
+    def delete(self,
+                     session                    = None,
+                     timeout      = 60)                  :
+        &#34;&#34;&#34;
+        Deletes the table specified by tableId from the dataset.
+
+        https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
+        &#34;&#34;&#34;
+        project = self.project()
+        url = (&#39;{}/projects/{}/datasets/&#39;
+               &#39;{}/tables/{}&#39;.format((API_ROOT), (project), (self.dataset_name), (self.table_name)))
+        headers = self.headers()
+        s = SyncSession(session) if session else self.session
+        resp = s.delete(
+            url, headers=headers, params=None, timeout=timeout)
         return resp.json()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.rest.bigquery.bigquery.Table.copy"><code class="name flex">
+<span>def <span class="ident">copy</span></span>(<span>self, destination_project, destination_dataset, destination_table, session=None, timeout=60)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Copy BQ table to another table in BQ</p>
+<p><a href="https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert">https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def copy(self, destination_project     , destination_dataset     ,
+               destination_table     , session                    = None,
+               timeout      = 60)                  :
+    &#34;&#34;&#34;
+    Copy BQ table to another table in BQ
+
+    https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    &#34;&#34;&#34;
+    if not (destination_project and destination_dataset
+            and destination_table):
+        return {}
+
+    project = self.project()
+    url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
+    body = self._make_copy_body(
+        project, destination_project,
+        destination_dataset, destination_table)
+    payload = json.dumps(body).encode(&#39;utf-8&#39;)
+
+    headers = self.headers()
+    headers.update({
+        &#39;Content-Length&#39;: str(len(payload)),
+        &#39;Content-Type&#39;: &#39;application/json&#39;
+    })
+    s = SyncSession(session) if session else self.session
+    resp = s.post(url, data=payload, headers=headers, params=None,
+                        timeout=timeout)
+    return resp.json()</code></pre>
+</details>
+</dd>
+<dt id="gcloud.rest.bigquery.bigquery.Table.delete"><code class="name flex">
+<span>def <span class="ident">delete</span></span>(<span>self, session=None, timeout=60)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Deletes the table specified by tableId from the dataset.</p>
+<p><a href="https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete">https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delete(self,
+                 session                    = None,
+                 timeout      = 60)                  :
+    &#34;&#34;&#34;
+    Deletes the table specified by tableId from the dataset.
+
+    https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
+    &#34;&#34;&#34;
+    project = self.project()
+    url = (&#39;{}/projects/{}/datasets/&#39;
+           &#39;{}/tables/{}&#39;.format((API_ROOT), (project), (self.dataset_name), (self.table_name)))
+    headers = self.headers()
+    s = SyncSession(session) if session else self.session
+    resp = s.delete(
+        url, headers=headers, params=None, timeout=timeout)
+    return resp.json()</code></pre>
+</details>
+</dd>
+<dt id="gcloud.rest.bigquery.bigquery.Table.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, session=None, timeout=60)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets the specified table resource by table ID</p>
+<p><a href="https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get">https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(
+        self, session                    = None,
+        timeout      = 60)                  :
+    &#34;&#34;&#34;
+    Gets the specified table resource by table ID
+
+    https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
+    &#34;&#34;&#34;
+    project = self.project()
+    url = (&#39;{}/projects/{}/datasets/&#39;
+           &#39;{}/tables/{}&#39;.format((API_ROOT), (project), (self.dataset_name), (self.table_name)))
+    headers = self.headers()
+    s = SyncSession(session) if session else self.session
+    resp = s.get(url, headers=headers, timeout=timeout)
+    return resp.json()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.rest.bigquery.bigquery.Table.headers"><code class="name flex">
 <span>def <span class="ident">headers</span></span>(<span>self)</span>
 </code></dt>
@@ -334,6 +684,42 @@ class Table(object):
     return resp.json()</code></pre>
 </details>
 </dd>
+<dt id="gcloud.rest.bigquery.bigquery.Table.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>self, source_uris, session=None, timeout=60)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Loads entities from storage to big query.</p>
+<p><a href="https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert">https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert</a></p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load(
+        self, source_uris           , session                    = None,
+        timeout      = 60)                  :
+    &#34;&#34;&#34;
+    Loads entities from storage to big query.
+
+    https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    &#34;&#34;&#34;
+    if not source_uris:
+        return {}
+
+    project = self.project()
+    url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
+    body = self._make_load_body(source_uris, project)
+    payload = json.dumps(body).encode(&#39;utf-8&#39;)
+    headers = self.headers()
+    headers.update({
+        &#39;Content-Length&#39;: str(len(payload)),
+        &#39;Content-Type&#39;: &#39;application/json&#39;
+    })
+    s = SyncSession(session) if session else self.session
+    resp = s.post(url, data=payload, headers=headers, params=None,
+                        timeout=timeout)
+    return resp.json()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.rest.bigquery.bigquery.Table.project"><code class="name flex">
 <span>def <span class="ident">project</span></span>(<span>self)</span>
 </code></dt>
@@ -374,9 +760,13 @@ class Table(object):
 <ul>
 <li>
 <h4><code><a title="gcloud.rest.bigquery.bigquery.Table" href="#gcloud.rest.bigquery.bigquery.Table">Table</a></code></h4>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="gcloud.rest.bigquery.bigquery.Table.copy" href="#gcloud.rest.bigquery.bigquery.Table.copy">copy</a></code></li>
+<li><code><a title="gcloud.rest.bigquery.bigquery.Table.delete" href="#gcloud.rest.bigquery.bigquery.Table.delete">delete</a></code></li>
+<li><code><a title="gcloud.rest.bigquery.bigquery.Table.get" href="#gcloud.rest.bigquery.bigquery.Table.get">get</a></code></li>
 <li><code><a title="gcloud.rest.bigquery.bigquery.Table.headers" href="#gcloud.rest.bigquery.bigquery.Table.headers">headers</a></code></li>
 <li><code><a title="gcloud.rest.bigquery.bigquery.Table.insert" href="#gcloud.rest.bigquery.bigquery.Table.insert">insert</a></code></li>
+<li><code><a title="gcloud.rest.bigquery.bigquery.Table.load" href="#gcloud.rest.bigquery.bigquery.Table.load">load</a></code></li>
 <li><code><a title="gcloud.rest.bigquery.bigquery.Table.project" href="#gcloud.rest.bigquery.bigquery.Table.project">project</a></code></li>
 </ul>
 </li>
