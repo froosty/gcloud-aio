@@ -185,9 +185,18 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;Table&#39;]</code></pre
         headers = await self.headers()
 
         s = AioSession(session) if session else self.session
-        resp = await s.delete(url, headers=headers, params=None,
-                              timeout=timeout)
-        return await resp.json()
+        resp = await s.session.delete(url, headers=headers, params=None,
+                                      timeout=timeout)
+        try:
+            return await resp.json()
+        except Exception:  # pylint: disable=broad-except
+            # For some reason, `gcloud-rest` seems to have intermittent issues
+            # parsing this response. In that case, fall back to returning the
+            # raw response body.
+            try:
+                return {&#39;response&#39;: await resp.text()}
+            except (AttributeError, TypeError):
+                return {&#39;response&#39;: resp.text}
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
     async def get(
@@ -324,9 +333,18 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;Table&#39;]</code></pre
     headers = await self.headers()
 
     s = AioSession(session) if session else self.session
-    resp = await s.delete(url, headers=headers, params=None,
-                          timeout=timeout)
-    return await resp.json()</code></pre>
+    resp = await s.session.delete(url, headers=headers, params=None,
+                                  timeout=timeout)
+    try:
+        return await resp.json()
+    except Exception:  # pylint: disable=broad-except
+        # For some reason, `gcloud-rest` seems to have intermittent issues
+        # parsing this response. In that case, fall back to returning the
+        # raw response body.
+        try:
+            return {&#39;response&#39;: await resp.text()}
+        except (AttributeError, TypeError):
+            return {&#39;response&#39;: resp.text}</code></pre>
 </details>
 </dd>
 <dt id="gcloud.aio.bigquery.Table.get"><code class="name flex">

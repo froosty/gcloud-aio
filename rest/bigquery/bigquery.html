@@ -189,9 +189,18 @@ class Table(object):
         headers = self.headers()
 
         s = SyncSession(session) if session else self.session
-        resp = s.delete(url, headers=headers, params=None,
-                              timeout=timeout)
-        return resp.json()
+        resp = s.session.delete(url, headers=headers, params=None,
+                                      timeout=timeout)
+        try:
+            return resp.json()
+        except Exception:  # pylint: disable=broad-except
+            # For some reason, `gcloud-rest` seems to have intermittent issues
+            # parsing this response. In that case, fall back to returning the
+            # raw response body.
+            try:
+                return {&#39;response&#39;: resp.text()}
+            except (AttributeError, TypeError):
+                return {&#39;response&#39;: resp.text}
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
     def get(
@@ -420,9 +429,18 @@ class Table(object):
         headers = self.headers()
 
         s = SyncSession(session) if session else self.session
-        resp = s.delete(url, headers=headers, params=None,
-                              timeout=timeout)
-        return resp.json()
+        resp = s.session.delete(url, headers=headers, params=None,
+                                      timeout=timeout)
+        try:
+            return resp.json()
+        except Exception:  # pylint: disable=broad-except
+            # For some reason, `gcloud-rest` seems to have intermittent issues
+            # parsing this response. In that case, fall back to returning the
+            # raw response body.
+            try:
+                return {&#39;response&#39;: resp.text()}
+            except (AttributeError, TypeError):
+                return {&#39;response&#39;: resp.text}
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/get
     def get(
@@ -560,9 +578,18 @@ class Table(object):
     headers = self.headers()
 
     s = SyncSession(session) if session else self.session
-    resp = s.delete(url, headers=headers, params=None,
-                          timeout=timeout)
-    return resp.json()</code></pre>
+    resp = s.session.delete(url, headers=headers, params=None,
+                                  timeout=timeout)
+    try:
+        return resp.json()
+    except Exception:  # pylint: disable=broad-except
+        # For some reason, `gcloud-rest` seems to have intermittent issues
+        # parsing this response. In that case, fall back to returning the
+        # raw response body.
+        try:
+            return {&#39;response&#39;: resp.text()}
+        except (AttributeError, TypeError):
+            return {&#39;response&#39;: resp.text}</code></pre>
 </details>
 </dd>
 <dt id="gcloud.rest.bigquery.bigquery.Table.get"><code class="name flex">
