@@ -28,7 +28,6 @@
 from typing import Any
 from typing import Dict
 
-from gcloud.rest.datastore import entity
 from gcloud.rest.datastore.constants import TypeName
 from gcloud.rest.datastore.constants import TYPES
 from gcloud.rest.datastore.key import Key
@@ -56,6 +55,8 @@ class Value(object):  # pylint:disable=useless-object-inheritance
 
     @classmethod
     def from_repr(cls, data                )           :
+        from gcloud.rest.datastore import entity
+
         supported_types = cls._get_supported_types()
         for value_type, type_name in supported_types.items():
             json_key = type_name.value
@@ -110,6 +111,8 @@ class Value(object):  # pylint:disable=useless-object-inheritance
 
     @classmethod
     def _get_supported_types(cls):
+        from gcloud.rest.datastore import entity
+
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
@@ -157,6 +160,8 @@ class Value(object):  # pylint:disable=useless-object-inheritance
 
     @classmethod
     def from_repr(cls, data                )           :
+        from gcloud.rest.datastore import entity
+
         supported_types = cls._get_supported_types()
         for value_type, type_name in supported_types.items():
             json_key = type_name.value
@@ -211,6 +216,8 @@ class Value(object):  # pylint:disable=useless-object-inheritance
 
     @classmethod
     def _get_supported_types(cls):
+        from gcloud.rest.datastore import entity
+
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
@@ -278,6 +285,8 @@ class Value(object):  # pylint:disable=useless-object-inheritance
 </summary>
 <pre><code class="python">@classmethod
 def from_repr(cls, data                )           :
+    from gcloud.rest.datastore import entity
+
     supported_types = cls._get_supported_types()
     for value_type, type_name in supported_types.items():
         json_key = type_name.value

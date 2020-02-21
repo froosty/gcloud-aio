@@ -306,6 +306,8 @@ class QueryResultBatch(object):
 
     @classmethod
     def from_repr(cls, data                )           :
+        from gcloud.rest.datastore import entity
+
         supported_types = cls._get_supported_types()
         for value_type, type_name in supported_types.items():
             json_key = type_name.value
@@ -360,6 +362,8 @@ class QueryResultBatch(object):
 
     @classmethod
     def _get_supported_types(cls):
+        from gcloud.rest.datastore import entity
+
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,

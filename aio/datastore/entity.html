@@ -26,6 +26,7 @@
 </summary>
 <pre><code class="python">from typing import Any
 from typing import Dict
+from typing import Optional
 
 from gcloud.aio.datastore.key import Key
 from gcloud.aio.datastore.value import Value
@@ -55,7 +56,7 @@ class Entity:
         # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
         # &#34;for example, an entity in Value.entity_value may have no key&#34;
         if &#39;key&#39; in data:
-            key = cls.key_kind.from_repr(data[&#39;key&#39;])
+            key: Optional[Key] = cls.key_kind.from_repr(data[&#39;key&#39;])
         else:
             key = None
         return cls(key, data.get(&#39;properties&#39;))
@@ -149,7 +150,7 @@ class EntityResult:
         # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
         # &#34;for example, an entity in Value.entity_value may have no key&#34;
         if &#39;key&#39; in data:
-            key = cls.key_kind.from_repr(data[&#39;key&#39;])
+            key: Optional[Key] = cls.key_kind.from_repr(data[&#39;key&#39;])
         else:
             key = None
         return cls(key, data.get(&#39;properties&#39;))
@@ -234,6 +235,8 @@ class EntityResult:
 
     @classmethod
     def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
+        from gcloud.aio.datastore import entity
+
         supported_types = cls._get_supported_types()
         for value_type, type_name in supported_types.items():
             json_key = type_name.value
@@ -288,6 +291,8 @@ class EntityResult:
 
     @classmethod
     def _get_supported_types(cls):
+        from gcloud.aio.datastore import entity
+
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
@@ -313,7 +318,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Entity&#39;:
     # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
     # &#34;for example, an entity in Value.entity_value may have no key&#34;
     if &#39;key&#39; in data:
-        key = cls.key_kind.from_repr(data[&#39;key&#39;])
+        key: Optional[Key] = cls.key_kind.from_repr(data[&#39;key&#39;])
     else:
         key = None
     return cls(key, data.get(&#39;properties&#39;))</code></pre>
@@ -421,7 +426,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Entity&#39;:
         # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
         # &#34;for example, an entity in Value.entity_value may have no key&#34;
         if &#39;key&#39; in data:
-            key = cls.key_kind.from_repr(data[&#39;key&#39;])
+            key: Optional[Key] = cls.key_kind.from_repr(data[&#39;key&#39;])
         else:
             key = None
         return cls(key, data.get(&#39;properties&#39;))
