@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.7.4" />
 <title>gcloud.rest.datastore API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -222,7 +222,7 @@ def from_repr(cls, data                )                     :
 </dd>
 <dt id="gcloud.rest.datastore.CompositeFilterOperator"><code class="flex name class">
 <span>class <span class="ident">CompositeFilterOperator</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -252,7 +252,7 @@ def from_repr(cls, data                )                     :
 </dd>
 <dt id="gcloud.rest.datastore.Consistency"><code class="flex name class">
 <span>class <span class="ident">Consistency</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -857,10 +857,8 @@ def from_repr(cls, data                )                     :
                 elif value_type == datetime:
                     value = datetime.strptime(data[json_key],
                                               &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif value_type == cls.key_kind:
-                    value = cls.key_kind.from_repr(data[json_key])
-                elif value_type == LatLng:
-                    value = LatLng.from_repr(data[json_key])
+                elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+                    value = value_type.from_repr(data[json_key])
                 else:
                     value = value_type(data[json_key])
                 break
@@ -879,7 +877,7 @@ def from_repr(cls, data                )                     :
 
     def to_repr(self)                  :
         value_type = self._infer_type(self.value)
-        if value_type in {TypeName.GEOPOINT, TypeName.KEY}:
+        if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
             value = self.value.to_repr()
         elif value_type == TypeName.TIMESTAMP:
             value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -907,6 +905,7 @@ def from_repr(cls, data                )                     :
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
+            entity.Entity: TypeName.ENTITY,
         })
         return supported_types</code></pre>
 </details>
@@ -1441,7 +1440,7 @@ def from_repr(cls, data                )                        :
 </dd>
 <dt id="gcloud.rest.datastore.Direction"><code class="flex name class">
 <span>class <span class="ident">Direction</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -1505,12 +1504,19 @@ def from_repr(cls, data                )                        :
 
     @classmethod
     def from_repr(cls, data                )            :
-        return cls(cls.key_kind.from_repr(data[&#39;key&#39;]), data.get(&#39;properties&#39;))
+        # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
+        # &#34;for example, an entity in Value.entity_value may have no key&#34;
+        if &#39;key&#39; in data:
+            key = cls.key_kind.from_repr(data[&#39;key&#39;])
+        else:
+            key = None
+        return cls(key, data.get(&#39;properties&#39;))
 
     def to_repr(self)                  :
         return {
-            &#39;key&#39;: self.key.to_repr(),
-            &#39;properties&#39;: self.properties,
+            &#39;key&#39;: self.key.to_repr() if self.key else None,
+            &#39;properties&#39;: {k: self.value_kind(v).to_repr()
+                           for k, v in self.properties.items()},
         }</code></pre>
 </details>
 <h3>Class variables</h3>
@@ -1595,10 +1601,8 @@ def from_repr(cls, data                )                        :
                 elif value_type == datetime:
                     value = datetime.strptime(data[json_key],
                                               &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif value_type == cls.key_kind:
-                    value = cls.key_kind.from_repr(data[json_key])
-                elif value_type == LatLng:
-                    value = LatLng.from_repr(data[json_key])
+                elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+                    value = value_type.from_repr(data[json_key])
                 else:
                     value = value_type(data[json_key])
                 break
@@ -1617,7 +1621,7 @@ def from_repr(cls, data                )                        :
 
     def to_repr(self)                  :
         value_type = self._infer_type(self.value)
-        if value_type in {TypeName.GEOPOINT, TypeName.KEY}:
+        if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
             value = self.value.to_repr()
         elif value_type == TypeName.TIMESTAMP:
             value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -1645,6 +1649,7 @@ def from_repr(cls, data                )                        :
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
+            entity.Entity: TypeName.ENTITY,
         })
         return supported_types</code></pre>
 </details>
@@ -1663,7 +1668,13 @@ def from_repr(cls, data                )                        :
 </summary>
 <pre><code class="python">@classmethod
 def from_repr(cls, data                )            :
-    return cls(cls.key_kind.from_repr(data[&#39;key&#39;]), data.get(&#39;properties&#39;))</code></pre>
+    # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
+    # &#34;for example, an entity in Value.entity_value may have no key&#34;
+    if &#39;key&#39; in data:
+        key = cls.key_kind.from_repr(data[&#39;key&#39;])
+    else:
+        key = None
+    return cls(key, data.get(&#39;properties&#39;))</code></pre>
 </details>
 </dd>
 </dl>
@@ -1680,8 +1691,9 @@ def from_repr(cls, data                )            :
 </summary>
 <pre><code class="python">def to_repr(self)                  :
     return {
-        &#39;key&#39;: self.key.to_repr(),
-        &#39;properties&#39;: self.properties,
+        &#39;key&#39;: self.key.to_repr() if self.key else None,
+        &#39;properties&#39;: {k: self.value_kind(v).to_repr()
+                       for k, v in self.properties.items()},
     }</code></pre>
 </details>
 </dd>
@@ -1764,12 +1776,19 @@ def from_repr(cls, data                )            :
 
     @classmethod
     def from_repr(cls, data                )            :
-        return cls(cls.key_kind.from_repr(data[&#39;key&#39;]), data.get(&#39;properties&#39;))
+        # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
+        # &#34;for example, an entity in Value.entity_value may have no key&#34;
+        if &#39;key&#39; in data:
+            key = cls.key_kind.from_repr(data[&#39;key&#39;])
+        else:
+            key = None
+        return cls(key, data.get(&#39;properties&#39;))
 
     def to_repr(self)                  :
         return {
-            &#39;key&#39;: self.key.to_repr(),
-            &#39;properties&#39;: self.properties,
+            &#39;key&#39;: self.key.to_repr() if self.key else None,
+            &#39;properties&#39;: {k: self.value_kind(v).to_repr()
+                           for k, v in self.properties.items()},
         }</code></pre>
 </details>
 </dd>
@@ -2235,7 +2254,7 @@ def from_repr(cls, data                )            :
 </dd>
 <dt id="gcloud.rest.datastore.Mode"><code class="flex name class">
 <span>class <span class="ident">Mode</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -2270,7 +2289,7 @@ def from_repr(cls, data                )            :
 </dd>
 <dt id="gcloud.rest.datastore.MoreResultsType"><code class="flex name class">
 <span>class <span class="ident">MoreResultsType</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -2315,7 +2334,7 @@ def from_repr(cls, data                )            :
 </dd>
 <dt id="gcloud.rest.datastore.Operation"><code class="flex name class">
 <span>class <span class="ident">Operation</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -2617,7 +2636,7 @@ def from_repr(cls, data                )                    :
 </dd>
 <dt id="gcloud.rest.datastore.PropertyFilterOperator"><code class="flex name class">
 <span>class <span class="ident">PropertyFilterOperator</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -3093,7 +3112,7 @@ def from_repr(cls, data                )                      :
 </dd>
 <dt id="gcloud.rest.datastore.ResultType"><code class="flex name class">
 <span>class <span class="ident">ResultType</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -3170,10 +3189,8 @@ def from_repr(cls, data                )                      :
                 elif value_type == datetime:
                     value = datetime.strptime(data[json_key],
                                               &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif value_type == cls.key_kind:
-                    value = cls.key_kind.from_repr(data[json_key])
-                elif value_type == LatLng:
-                    value = LatLng.from_repr(data[json_key])
+                elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+                    value = value_type.from_repr(data[json_key])
                 else:
                     value = value_type(data[json_key])
                 break
@@ -3192,7 +3209,7 @@ def from_repr(cls, data                )                      :
 
     def to_repr(self)                  :
         value_type = self._infer_type(self.value)
-        if value_type in {TypeName.GEOPOINT, TypeName.KEY}:
+        if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
             value = self.value.to_repr()
         elif value_type == TypeName.TIMESTAMP:
             value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -3220,6 +3237,7 @@ def from_repr(cls, data                )                      :
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
+            entity.Entity: TypeName.ENTITY,
         })
         return supported_types</code></pre>
 </details>
@@ -3292,10 +3310,8 @@ def from_repr(cls, data                )           :
             elif value_type == datetime:
                 value = datetime.strptime(data[json_key],
                                           &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-            elif value_type == cls.key_kind:
-                value = cls.key_kind.from_repr(data[json_key])
-            elif value_type == LatLng:
-                value = LatLng.from_repr(data[json_key])
+            elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+                value = value_type.from_repr(data[json_key])
             else:
                 value = value_type(data[json_key])
             break
@@ -3327,7 +3343,7 @@ def from_repr(cls, data                )           :
 </summary>
 <pre><code class="python">def to_repr(self)                  :
     value_type = self._infer_type(self.value)
-    if value_type in {TypeName.GEOPOINT, TypeName.KEY}:
+    if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
         value = self.value.to_repr()
     elif value_type == TypeName.TIMESTAMP:
         value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -3591,7 +3607,7 @@ def from_repr(cls, data                )           :
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.4</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>

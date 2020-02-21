@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.7.4" />
 <title>gcloud.rest.datastore.constants API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -89,6 +89,7 @@ class TypeName(enum.Enum):
     BLOB = &#39;blobValue&#39;
     BOOLEAN = &#39;booleanValue&#39;
     DOUBLE = &#39;doubleValue&#39;
+    ENTITY = &#39;entityValue&#39;
     INTEGER = &#39;integerValue&#39;
     GEOPOINT = &#39;geoPointValue&#39;
     KEY = &#39;keyValue&#39;
@@ -121,7 +122,7 @@ TYPES = {
 <dl>
 <dt id="gcloud.rest.datastore.constants.CompositeFilterOperator"><code class="flex name class">
 <span>class <span class="ident">CompositeFilterOperator</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -151,7 +152,7 @@ TYPES = {
 </dd>
 <dt id="gcloud.rest.datastore.constants.Consistency"><code class="flex name class">
 <span>class <span class="ident">Consistency</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -186,7 +187,7 @@ TYPES = {
 </dd>
 <dt id="gcloud.rest.datastore.constants.Direction"><code class="flex name class">
 <span>class <span class="ident">Direction</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -221,7 +222,7 @@ TYPES = {
 </dd>
 <dt id="gcloud.rest.datastore.constants.Mode"><code class="flex name class">
 <span>class <span class="ident">Mode</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -256,7 +257,7 @@ TYPES = {
 </dd>
 <dt id="gcloud.rest.datastore.constants.MoreResultsType"><code class="flex name class">
 <span>class <span class="ident">MoreResultsType</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -301,7 +302,7 @@ TYPES = {
 </dd>
 <dt id="gcloud.rest.datastore.constants.Operation"><code class="flex name class">
 <span>class <span class="ident">Operation</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -341,7 +342,7 @@ TYPES = {
 </dd>
 <dt id="gcloud.rest.datastore.constants.PropertyFilterOperator"><code class="flex name class">
 <span>class <span class="ident">PropertyFilterOperator</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -396,7 +397,7 @@ TYPES = {
 </dd>
 <dt id="gcloud.rest.datastore.constants.ResultType"><code class="flex name class">
 <span>class <span class="ident">ResultType</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -436,7 +437,7 @@ TYPES = {
 </dd>
 <dt id="gcloud.rest.datastore.constants.TypeName"><code class="flex name class">
 <span>class <span class="ident">TypeName</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
@@ -448,6 +449,7 @@ TYPES = {
     BLOB = &#39;blobValue&#39;
     BOOLEAN = &#39;booleanValue&#39;
     DOUBLE = &#39;doubleValue&#39;
+    ENTITY = &#39;entityValue&#39;
     INTEGER = &#39;integerValue&#39;
     GEOPOINT = &#39;geoPointValue&#39;
     KEY = &#39;keyValue&#39;
@@ -470,6 +472,10 @@ TYPES = {
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
 <dt id="gcloud.rest.datastore.constants.TypeName.DOUBLE"><code class="name">var <span class="ident">DOUBLE</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
+<dt id="gcloud.rest.datastore.constants.TypeName.ENTITY"><code class="name">var <span class="ident">ENTITY</span></code></dt>
 <dd>
 <section class="desc"><p>An enumeration.</p></section>
 </dd>
@@ -592,6 +598,7 @@ TYPES = {
 <li><code><a title="gcloud.rest.datastore.constants.TypeName.BLOB" href="#gcloud.rest.datastore.constants.TypeName.BLOB">BLOB</a></code></li>
 <li><code><a title="gcloud.rest.datastore.constants.TypeName.BOOLEAN" href="#gcloud.rest.datastore.constants.TypeName.BOOLEAN">BOOLEAN</a></code></li>
 <li><code><a title="gcloud.rest.datastore.constants.TypeName.DOUBLE" href="#gcloud.rest.datastore.constants.TypeName.DOUBLE">DOUBLE</a></code></li>
+<li><code><a title="gcloud.rest.datastore.constants.TypeName.ENTITY" href="#gcloud.rest.datastore.constants.TypeName.ENTITY">ENTITY</a></code></li>
 <li><code><a title="gcloud.rest.datastore.constants.TypeName.GEOPOINT" href="#gcloud.rest.datastore.constants.TypeName.GEOPOINT">GEOPOINT</a></code></li>
 <li><code><a title="gcloud.rest.datastore.constants.TypeName.INTEGER" href="#gcloud.rest.datastore.constants.TypeName.INTEGER">INTEGER</a></code></li>
 <li><code><a title="gcloud.rest.datastore.constants.TypeName.KEY" href="#gcloud.rest.datastore.constants.TypeName.KEY">KEY</a></code></li>
@@ -606,7 +613,7 @@ TYPES = {
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.4</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>
