@@ -71,6 +71,10 @@ __all__ = [&#39;__version__&#39;, &#39;CompositeFilter&#39;, &#39;CompositeFilte
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
+<dt><code class="name"><a title="gcloud.rest.datastore.array" href="array.html">gcloud.rest.datastore.array</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
 <dt><code class="name"><a title="gcloud.rest.datastore.constants" href="constants.html">gcloud.rest.datastore.constants</a></code></dt>
 <dd>
 <section class="desc"></section>
@@ -848,8 +852,6 @@ def from_repr(cls, data                )                     :
 
     @classmethod
     def from_repr(cls, data                )           :
-        from gcloud.rest.datastore import entity
-
         supported_types = cls._get_supported_types()
         for value_type, type_name in supported_types.items():
             json_key = type_name.value
@@ -859,7 +861,7 @@ def from_repr(cls, data                )                     :
                 elif value_type == datetime:
                     value = datetime.strptime(data[json_key],
                                               &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+                elif hasattr(value_type, &#39;from_repr&#39;):
                     value = value_type.from_repr(data[json_key])
                 else:
                     value = value_type(data[json_key])
@@ -879,7 +881,8 @@ def from_repr(cls, data                )                     :
 
     def to_repr(self)                  :
         value_type = self._infer_type(self.value)
-        if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
+        if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
+                          TypeName.KEY}:
             value = self.value.to_repr()
         elif value_type == TypeName.TIMESTAMP:
             value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -904,11 +907,13 @@ def from_repr(cls, data                )                     :
 
     @classmethod
     def _get_supported_types(cls):
+        from gcloud.rest.datastore import array
         from gcloud.rest.datastore import entity
 
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
+            array.Array: TypeName.ARRAY,
             entity.Entity: TypeName.ENTITY,
         })
         return supported_types</code></pre>
@@ -1596,8 +1601,6 @@ def from_repr(cls, data                )                        :
 
     @classmethod
     def from_repr(cls, data                )           :
-        from gcloud.rest.datastore import entity
-
         supported_types = cls._get_supported_types()
         for value_type, type_name in supported_types.items():
             json_key = type_name.value
@@ -1607,7 +1610,7 @@ def from_repr(cls, data                )                        :
                 elif value_type == datetime:
                     value = datetime.strptime(data[json_key],
                                               &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+                elif hasattr(value_type, &#39;from_repr&#39;):
                     value = value_type.from_repr(data[json_key])
                 else:
                     value = value_type(data[json_key])
@@ -1627,7 +1630,8 @@ def from_repr(cls, data                )                        :
 
     def to_repr(self)                  :
         value_type = self._infer_type(self.value)
-        if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
+        if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
+                          TypeName.KEY}:
             value = self.value.to_repr()
         elif value_type == TypeName.TIMESTAMP:
             value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -1652,11 +1656,13 @@ def from_repr(cls, data                )                        :
 
     @classmethod
     def _get_supported_types(cls):
+        from gcloud.rest.datastore import array
         from gcloud.rest.datastore import entity
 
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
+            array.Array: TypeName.ARRAY,
             entity.Entity: TypeName.ENTITY,
         })
         return supported_types</code></pre>
@@ -3188,8 +3194,6 @@ def from_repr(cls, data                )                      :
 
     @classmethod
     def from_repr(cls, data                )           :
-        from gcloud.rest.datastore import entity
-
         supported_types = cls._get_supported_types()
         for value_type, type_name in supported_types.items():
             json_key = type_name.value
@@ -3199,7 +3203,7 @@ def from_repr(cls, data                )                      :
                 elif value_type == datetime:
                     value = datetime.strptime(data[json_key],
                                               &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+                elif hasattr(value_type, &#39;from_repr&#39;):
                     value = value_type.from_repr(data[json_key])
                 else:
                     value = value_type(data[json_key])
@@ -3219,7 +3223,8 @@ def from_repr(cls, data                )                      :
 
     def to_repr(self)                  :
         value_type = self._infer_type(self.value)
-        if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
+        if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
+                          TypeName.KEY}:
             value = self.value.to_repr()
         elif value_type == TypeName.TIMESTAMP:
             value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -3244,11 +3249,13 @@ def from_repr(cls, data                )                      :
 
     @classmethod
     def _get_supported_types(cls):
+        from gcloud.rest.datastore import array
         from gcloud.rest.datastore import entity
 
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
+            array.Array: TypeName.ARRAY,
             entity.Entity: TypeName.ENTITY,
         })
         return supported_types</code></pre>
@@ -3313,8 +3320,6 @@ def from_repr(cls, data                )                      :
 </summary>
 <pre><code class="python">@classmethod
 def from_repr(cls, data                )           :
-    from gcloud.rest.datastore import entity
-
     supported_types = cls._get_supported_types()
     for value_type, type_name in supported_types.items():
         json_key = type_name.value
@@ -3324,7 +3329,7 @@ def from_repr(cls, data                )           :
             elif value_type == datetime:
                 value = datetime.strptime(data[json_key],
                                           &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-            elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+            elif hasattr(value_type, &#39;from_repr&#39;):
                 value = value_type.from_repr(data[json_key])
             else:
                 value = value_type(data[json_key])
@@ -3357,7 +3362,8 @@ def from_repr(cls, data                )           :
 </summary>
 <pre><code class="python">def to_repr(self)                  :
     value_type = self._infer_type(self.value)
-    if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
+    if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
+                      TypeName.KEY}:
         value = self.value.to_repr()
     elif value_type == TypeName.TIMESTAMP:
         value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -3387,6 +3393,7 @@ def from_repr(cls, data                )           :
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
+<li><code><a title="gcloud.rest.datastore.array" href="array.html">gcloud.rest.datastore.array</a></code></li>
 <li><code><a title="gcloud.rest.datastore.constants" href="constants.html">gcloud.rest.datastore.constants</a></code></li>
 <li><code><a title="gcloud.rest.datastore.datastore" href="datastore.html">gcloud.rest.datastore.datastore</a></code></li>
 <li><code><a title="gcloud.rest.datastore.datastore_operation" href="datastore_operation.html">gcloud.rest.datastore.datastore_operation</a></code></li>

@@ -243,8 +243,6 @@ class EntityResult(object):
 
     @classmethod
     def from_repr(cls, data                )           :
-        from gcloud.rest.datastore import entity
-
         supported_types = cls._get_supported_types()
         for value_type, type_name in supported_types.items():
             json_key = type_name.value
@@ -254,7 +252,7 @@ class EntityResult(object):
                 elif value_type == datetime:
                     value = datetime.strptime(data[json_key],
                                               &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif value_type in {cls.key_kind, LatLng, entity.Entity}:
+                elif hasattr(value_type, &#39;from_repr&#39;):
                     value = value_type.from_repr(data[json_key])
                 else:
                     value = value_type(data[json_key])
@@ -274,7 +272,8 @@ class EntityResult(object):
 
     def to_repr(self)                  :
         value_type = self._infer_type(self.value)
-        if value_type in {TypeName.ENTITY, TypeName.GEOPOINT, TypeName.KEY}:
+        if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
+                          TypeName.KEY}:
             value = self.value.to_repr()
         elif value_type == TypeName.TIMESTAMP:
             value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
@@ -299,11 +298,13 @@ class EntityResult(object):
 
     @classmethod
     def _get_supported_types(cls):
+        from gcloud.rest.datastore import array
         from gcloud.rest.datastore import entity
 
         supported_types = TYPES
         supported_types.update({
             cls.key_kind: TypeName.KEY,
+            array.Array: TypeName.ARRAY,
             entity.Entity: TypeName.ENTITY,
         })
         return supported_types</code></pre>
