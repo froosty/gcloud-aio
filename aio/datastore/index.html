@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.4" />
+<meta name="generator" content="pdoc 0.7.5" />
 <title>gcloud.aio.datastore API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -168,15 +168,7 @@ __all__ = [&#39;__version__&#39;, &#39;CompositeFilter&#39;, &#39;CompositeFilte
 <dl>
 <dt id="gcloud.aio.datastore.CompositeFilter.json_key"><code class="name">var <span class="ident">json_key</span></code></dt>
 <dd>
-<section class="desc"><p>str(object='') -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.<strong>str</strong>() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -240,11 +232,11 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;CompositeFilter&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.CompositeFilterOperator.AND"><code class="name">var <span class="ident">AND</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.CompositeFilterOperator.UNSPECIFIED"><code class="name">var <span class="ident">UNSPECIFIED</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 </dd>
@@ -271,15 +263,15 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;CompositeFilter&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.Consistency.EVENTUAL"><code class="name">var <span class="ident">EVENTUAL</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Consistency.STRONG"><code class="name">var <span class="ident">STRONG</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Consistency.UNSPECIFIED"><code class="name">var <span class="ident">UNSPECIFIED</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 </dd>
@@ -627,291 +619,22 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;CompositeFilter&#39;:
 <dt id="gcloud.aio.datastore.Datastore.datastore_operation_kind"><code class="name">var <span class="ident">datastore_operation_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DatastoreOperation:
-    def __init__(self, name: str, done: bool,
-                 metadata: Optional[Dict[str, Any]] = None,
-                 error: Dict[str, str] = None,
-                 response: Optional[Dict[str, Any]] = None) -&gt; None:
-        self.name = name
-        self.done = done
-
-        self.metadata = metadata
-        self.error = error
-        self.response = response
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;DatastoreOperation&#39;:
-        return cls(data[&#39;name&#39;], data.get(&#39;done&#39;, False), data.get(&#39;metadata&#39;),
-                   data.get(&#39;error&#39;), data.get(&#39;response&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        return {
-            &#39;done&#39;: self.done,
-            &#39;error&#39;: self.error,
-            &#39;metadata&#39;: self.metadata,
-            &#39;name&#39;: self.name,
-            &#39;response&#39;: self.response,
-        }</code></pre>
-</details>
 </dd>
 <dt id="gcloud.aio.datastore.Datastore.entity_result_kind"><code class="name">var <span class="ident">entity_result_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class EntityResult:
-    entity_kind = Entity
-
-    def __init__(self, entity: Entity, version: str = &#39;&#39;,
-                 cursor: str = &#39;&#39;) -&gt; None:
-        self.entity = entity
-        self.version = version
-        self.cursor = cursor
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, EntityResult):
-            return False
-
-        return bool(self.entity == other.entity
-                    and self.version == other.version
-                    and self.cursor == self.cursor)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;EntityResult&#39;:
-        return cls(cls.entity_kind.from_repr(data[&#39;entity&#39;]),
-                   data.get(&#39;version&#39;, &#39;&#39;),
-                   data.get(&#39;cursor&#39;, &#39;&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        data = {
-            &#39;entity&#39;: self.entity.to_repr(),
-        }
-        if self.version:
-            data[&#39;version&#39;] = self.version
-        if self.cursor:
-            data[&#39;cursor&#39;] = self.cursor
-
-        return data</code></pre>
-</details>
 </dd>
 <dt id="gcloud.aio.datastore.Datastore.key_kind"><code class="name">var <span class="ident">key_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Key:
-    path_element_kind = PathElement
-
-    def __init__(self, project: str, path: List[PathElement],
-                 namespace: str = &#39;&#39;) -&gt; None:
-        self.project = project
-        self.namespace = namespace
-        self.path = path
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Key):
-            return False
-
-        return bool(self.project == other.project
-                    and self.namespace == other.namespace
-                    and self.path == other.path)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Key&#39;:
-        return cls(data[&#39;partitionId&#39;][&#39;projectId&#39;],
-                   path=[cls.path_element_kind.from_repr(p)
-                         for p in data[&#39;path&#39;]],
-                   namespace=data[&#39;partitionId&#39;].get(&#39;namespaceId&#39;, &#39;&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        return {
-            &#39;partitionId&#39;: {
-                &#39;projectId&#39;: self.project,
-                &#39;namespaceId&#39;: self.namespace,
-            },
-            &#39;path&#39;: [p.to_repr() for p in self.path],
-        }</code></pre>
-</details>
 </dd>
 <dt id="gcloud.aio.datastore.Datastore.query_result_batch_kind"><code class="name">var <span class="ident">query_result_batch_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class QueryResultBatch:
-    entity_result_kind = EntityResult
-
-    def __init__(self, end_cursor: str,
-                 entity_result_type: ResultType = ResultType.UNSPECIFIED,
-                 entity_results: List[EntityResult] = None,
-                 more_results: MoreResultsType = MoreResultsType.UNSPECIFIED,
-                 skipped_cursor: str = &#39;&#39;, skipped_results: int = 0,
-                 snapshot_version: str = &#39;&#39;) -&gt; None:
-        self.end_cursor = end_cursor
-
-        self.entity_result_type = entity_result_type
-        self.entity_results = entity_results or []
-        self.more_results = more_results
-        self.skipped_cursor = skipped_cursor
-        self.skipped_results = skipped_results
-        self.snapshot_version = snapshot_version
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, QueryResultBatch):
-            return False
-
-        return bool(self.end_cursor == other.end_cursor
-                    and self.entity_result_type == other.entity_result_type
-                    and self.entity_results == other.entity_results
-                    and self.more_results == other.more_results
-                    and self.skipped_cursor == other.skipped_cursor
-                    and self.skipped_results == other.skipped_results
-                    and self.snapshot_version == other.snapshot_version)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;QueryResultBatch&#39;:
-        end_cursor = data[&#39;endCursor&#39;]
-        entity_result_type = ResultType(data[&#39;entityResultType&#39;])
-        entity_results = [cls.entity_result_kind.from_repr(er)
-                          for er in data.get(&#39;entityResults&#39;, [])]
-        more_results = MoreResultsType(data[&#39;moreResults&#39;])
-        skipped_cursor = data.get(&#39;skippedCursor&#39;, &#39;&#39;)
-        skipped_results = data.get(&#39;skippedResults&#39;, 0)
-        snapshot_version = data.get(&#39;snapshotVersion&#39;, &#39;&#39;)
-        return cls(end_cursor, entity_result_type=entity_result_type,
-                   entity_results=entity_results, more_results=more_results,
-                   skipped_cursor=skipped_cursor,
-                   skipped_results=skipped_results,
-                   snapshot_version=snapshot_version)
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        data = {
-            &#39;endCursor&#39;: self.end_cursor,
-            &#39;entityResults&#39;: [er.to_repr() for er in self.entity_results],
-            &#39;entityResultType&#39;: self.entity_result_type.value,
-            &#39;moreResults&#39;: self.more_results.value,
-            &#39;skippedResults&#39;: self.skipped_results,
-        }
-        if self.skipped_cursor:
-            data[&#39;skippedCursor&#39;] = self.skipped_cursor
-        if self.snapshot_version:
-            data[&#39;snapshotVersion&#39;] = self.snapshot_version
-
-        return data</code></pre>
-</details>
 </dd>
 <dt id="gcloud.aio.datastore.Datastore.value_kind"><code class="name">var <span class="ident">value_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Value:  # pylint:disable=useless-object-inheritance
-    key_kind = Key
-
-    def __init__(self, value: Any, exclude_from_indexes: bool = False) -&gt; None:
-        self.value = value
-        self.excludeFromIndexes = exclude_from_indexes
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Value):
-            return False
-
-        return bool(
-            self.excludeFromIndexes == other.excludeFromIndexes
-            and self.value == other.value)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
-        supported_types = cls._get_supported_types()
-        for value_type, type_name in supported_types.items():
-            json_key = type_name.value
-            if json_key in data:
-                if json_key == &#39;nullValue&#39;:
-                    value = None
-                elif value_type == datetime:
-                    value = datetime.strptime(data[json_key],
-                                              &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif hasattr(value_type, &#39;from_repr&#39;):
-                    value = value_type.from_repr(data[json_key])
-                else:
-                    value = value_type(data[json_key])
-                break
-        else:
-            supported = [name.value for name in supported_types.values()]
-            raise NotImplementedError(
-                &#39;{vals} does not contain a supported value type&#39;
-                &#39; (any of: {supported})&#39;.format(vals=data.keys(),
-                                                supported=supported))
-
-        # Google may not populate that field. This can happen with both
-        # indexed and non-indexed fields.
-        exclude_from_indexes = bool(data.get(&#39;excludeFromIndexes&#39;, False))
-
-        return cls(value=value, exclude_from_indexes=exclude_from_indexes)
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        value_type = self._infer_type(self.value)
-        if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
-                          TypeName.KEY}:
-            value = self.value.to_repr()
-        elif value_type == TypeName.TIMESTAMP:
-            value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-        else:
-            value = &#39;NULL_VALUE&#39; if self.value is None else self.value
-        return {
-            &#39;excludeFromIndexes&#39;: self.excludeFromIndexes,
-            value_type.value: value,
-        }
-
-    def _infer_type(self, value: Any) -&gt; TypeName:
-        odd_strings = {&#39;newstr&#39;, &#39;unicode&#39;}
-        kind = str if value.__class__.__name__ in odd_strings else type(value)
-        supported_types = self._get_supported_types()
-
-        try:
-            return supported_types[kind]
-        except KeyError:
-            raise NotImplementedError(
-                &#39;{} is not a supported value type (any of: &#39;
-                &#39;{})&#39;.format(kind, supported_types))
-
-    @classmethod
-    def _get_supported_types(cls):
-        from gcloud.aio.datastore import array
-        from gcloud.aio.datastore import entity
-
-        supported_types = TYPES
-        supported_types.update({
-            cls.key_kind: TypeName.KEY,
-            array.Array: TypeName.ARRAY,
-            entity.Entity: TypeName.ENTITY,
-        })
-        return supported_types</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -1464,15 +1187,15 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;DatastoreOperation&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.Direction.ASCENDING"><code class="name">var <span class="ident">ASCENDING</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Direction.DESCENDING"><code class="name">var <span class="ident">DESCENDING</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Direction.UNSPECIFIED"><code class="name">var <span class="ident">UNSPECIFIED</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 </dd>
@@ -1527,140 +1250,10 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;DatastoreOperation&#39;:
 <dt id="gcloud.aio.datastore.Entity.key_kind"><code class="name">var <span class="ident">key_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Key:
-    path_element_kind = PathElement
-
-    def __init__(self, project: str, path: List[PathElement],
-                 namespace: str = &#39;&#39;) -&gt; None:
-        self.project = project
-        self.namespace = namespace
-        self.path = path
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Key):
-            return False
-
-        return bool(self.project == other.project
-                    and self.namespace == other.namespace
-                    and self.path == other.path)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Key&#39;:
-        return cls(data[&#39;partitionId&#39;][&#39;projectId&#39;],
-                   path=[cls.path_element_kind.from_repr(p)
-                         for p in data[&#39;path&#39;]],
-                   namespace=data[&#39;partitionId&#39;].get(&#39;namespaceId&#39;, &#39;&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        return {
-            &#39;partitionId&#39;: {
-                &#39;projectId&#39;: self.project,
-                &#39;namespaceId&#39;: self.namespace,
-            },
-            &#39;path&#39;: [p.to_repr() for p in self.path],
-        }</code></pre>
-</details>
 </dd>
 <dt id="gcloud.aio.datastore.Entity.value_kind"><code class="name">var <span class="ident">value_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Value:  # pylint:disable=useless-object-inheritance
-    key_kind = Key
-
-    def __init__(self, value: Any, exclude_from_indexes: bool = False) -&gt; None:
-        self.value = value
-        self.excludeFromIndexes = exclude_from_indexes
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Value):
-            return False
-
-        return bool(
-            self.excludeFromIndexes == other.excludeFromIndexes
-            and self.value == other.value)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
-        supported_types = cls._get_supported_types()
-        for value_type, type_name in supported_types.items():
-            json_key = type_name.value
-            if json_key in data:
-                if json_key == &#39;nullValue&#39;:
-                    value = None
-                elif value_type == datetime:
-                    value = datetime.strptime(data[json_key],
-                                              &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif hasattr(value_type, &#39;from_repr&#39;):
-                    value = value_type.from_repr(data[json_key])
-                else:
-                    value = value_type(data[json_key])
-                break
-        else:
-            supported = [name.value for name in supported_types.values()]
-            raise NotImplementedError(
-                &#39;{vals} does not contain a supported value type&#39;
-                &#39; (any of: {supported})&#39;.format(vals=data.keys(),
-                                                supported=supported))
-
-        # Google may not populate that field. This can happen with both
-        # indexed and non-indexed fields.
-        exclude_from_indexes = bool(data.get(&#39;excludeFromIndexes&#39;, False))
-
-        return cls(value=value, exclude_from_indexes=exclude_from_indexes)
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        value_type = self._infer_type(self.value)
-        if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
-                          TypeName.KEY}:
-            value = self.value.to_repr()
-        elif value_type == TypeName.TIMESTAMP:
-            value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-        else:
-            value = &#39;NULL_VALUE&#39; if self.value is None else self.value
-        return {
-            &#39;excludeFromIndexes&#39;: self.excludeFromIndexes,
-            value_type.value: value,
-        }
-
-    def _infer_type(self, value: Any) -&gt; TypeName:
-        odd_strings = {&#39;newstr&#39;, &#39;unicode&#39;}
-        kind = str if value.__class__.__name__ in odd_strings else type(value)
-        supported_types = self._get_supported_types()
-
-        try:
-            return supported_types[kind]
-        except KeyError:
-            raise NotImplementedError(
-                &#39;{} is not a supported value type (any of: &#39;
-                &#39;{})&#39;.format(kind, supported_types))
-
-    @classmethod
-    def _get_supported_types(cls):
-        from gcloud.aio.datastore import array
-        from gcloud.aio.datastore import entity
-
-        supported_types = TYPES
-        supported_types.update({
-            cls.key_kind: TypeName.KEY,
-            array.Array: TypeName.ARRAY,
-            entity.Entity: TypeName.ENTITY,
-        })
-        return supported_types</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -1759,46 +1352,6 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Entity&#39;:
 <dt id="gcloud.aio.datastore.EntityResult.entity_kind"><code class="name">var <span class="ident">entity_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Entity:
-    key_kind = Key
-    value_kind = Value
-
-    def __init__(self, key: Key, properties: Dict[str, dict] = None) -&gt; None:
-        self.key = key
-        self.properties = {k: self.value_kind.from_repr(v).value
-                           for k, v in (properties or {}).items()}
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Entity):
-            return False
-
-        return bool(self.key == other.key
-                    and self.properties == other.properties)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Entity&#39;:
-        # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
-        # &#34;for example, an entity in Value.entity_value may have no key&#34;
-        if &#39;key&#39; in data:
-            key: Optional[Key] = cls.key_kind.from_repr(data[&#39;key&#39;])
-        else:
-            key = None
-        return cls(key, data.get(&#39;properties&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        return {
-            &#39;key&#39;: self.key.to_repr() if self.key else None,
-            &#39;properties&#39;: {k: self.value_kind(v).to_repr()
-                           for k, v in self.properties.items()},
-        }</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -1984,15 +1537,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Filter&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.GQLQuery.json_key"><code class="name">var <span class="ident">json_key</span></code></dt>
 <dd>
-<section class="desc"><p>str(object='') -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.<strong>str</strong>() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -2095,46 +1640,6 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;GQLQuery&#39;:
 <dt id="gcloud.aio.datastore.Key.path_element_kind"><code class="name">var <span class="ident">path_element_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PathElement:
-    def __init__(self, kind: str, *, id_: Optional[int] = None,
-                 name: Optional[str] = None) -&gt; None:
-        self.kind = kind
-
-        self.id = id_
-        self.name = name
-        if self.id and self.name:
-            raise Exception(&#39;invalid PathElement contains both ID and name&#39;)
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, PathElement):
-            return False
-
-        return bool(self.kind == other.kind and self.id == other.id
-                    and self.name == other.name)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;PathElement&#39;:
-        kind: str = data[&#39;kind&#39;]
-        id_: Optional[int] = data.get(&#39;id&#39;)
-        name: Optional[str] = data.get(&#39;name&#39;)
-        return cls(kind, id_=id_, name=name)
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        data: Dict[str, Any] = {&#39;kind&#39;: self.kind}
-        if self.id:
-            data[&#39;id&#39;] = self.id
-        elif self.name:
-            data[&#39;name&#39;] = self.name
-
-        return data</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -2280,15 +1785,15 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;LatLng&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.Mode.NON_TRANSACTIONAL"><code class="name">var <span class="ident">NON_TRANSACTIONAL</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Mode.TRANSACTIONAL"><code class="name">var <span class="ident">TRANSACTIONAL</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Mode.UNSPECIFIED"><code class="name">var <span class="ident">UNSPECIFIED</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 </dd>
@@ -2317,23 +1822,23 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;LatLng&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.MoreResultsType.MORE_RESULTS_AFTER_CURSOR"><code class="name">var <span class="ident">MORE_RESULTS_AFTER_CURSOR</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.MoreResultsType.MORE_RESULTS_AFTER_LIMIT"><code class="name">var <span class="ident">MORE_RESULTS_AFTER_LIMIT</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.MoreResultsType.NOT_FINISHED"><code class="name">var <span class="ident">NOT_FINISHED</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.MoreResultsType.NO_MORE_RESULTS"><code class="name">var <span class="ident">NO_MORE_RESULTS</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.MoreResultsType.UNSPECIFIED"><code class="name">var <span class="ident">UNSPECIFIED</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 </dd>
@@ -2361,19 +1866,19 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;LatLng&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.Operation.DELETE"><code class="name">var <span class="ident">DELETE</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Operation.INSERT"><code class="name">var <span class="ident">INSERT</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Operation.UPDATE"><code class="name">var <span class="ident">UPDATE</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.Operation.UPSERT"><code class="name">var <span class="ident">UPSERT</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 </dd>
@@ -2584,15 +2089,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Projection&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.PropertyFilter.json_key"><code class="name">var <span class="ident">json_key</span></code></dt>
 <dd>
-<section class="desc"><p>str(object='') -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.<strong>str</strong>() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -2663,31 +2160,31 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;PropertyFilter&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.PropertyFilterOperator.EQUAL"><code class="name">var <span class="ident">EQUAL</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.PropertyFilterOperator.GREATER_THAN"><code class="name">var <span class="ident">GREATER_THAN</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.PropertyFilterOperator.GREATER_THAN_OR_EQUAL"><code class="name">var <span class="ident">GREATER_THAN_OR_EQUAL</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.PropertyFilterOperator.HAS_ANCESTOR"><code class="name">var <span class="ident">HAS_ANCESTOR</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.PropertyFilterOperator.LESS_THAN"><code class="name">var <span class="ident">LESS_THAN</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.PropertyFilterOperator.LESS_THAN_OR_EQUAL"><code class="name">var <span class="ident">LESS_THAN_OR_EQUAL</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.PropertyFilterOperator.UNSPECIFIED"><code class="name">var <span class="ident">UNSPECIFIED</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 </dd>
@@ -2854,15 +2351,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;PropertyOrder&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.Query.json_key"><code class="name">var <span class="ident">json_key</span></code></dt>
 <dd>
-<section class="desc"><p>str(object='') -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.<strong>str</strong>() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -3011,47 +2500,6 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Query&#39;:
 <dt id="gcloud.aio.datastore.QueryResultBatch.entity_result_kind"><code class="name">var <span class="ident">entity_result_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class EntityResult:
-    entity_kind = Entity
-
-    def __init__(self, entity: Entity, version: str = &#39;&#39;,
-                 cursor: str = &#39;&#39;) -&gt; None:
-        self.entity = entity
-        self.version = version
-        self.cursor = cursor
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, EntityResult):
-            return False
-
-        return bool(self.entity == other.entity
-                    and self.version == other.version
-                    and self.cursor == self.cursor)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;EntityResult&#39;:
-        return cls(cls.entity_kind.from_repr(data[&#39;entity&#39;]),
-                   data.get(&#39;version&#39;, &#39;&#39;),
-                   data.get(&#39;cursor&#39;, &#39;&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        data = {
-            &#39;entity&#39;: self.entity.to_repr(),
-        }
-        if self.version:
-            data[&#39;version&#39;] = self.version
-        if self.cursor:
-            data[&#39;cursor&#39;] = self.cursor
-
-        return data</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -3136,19 +2584,19 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;QueryResultBatch&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.ResultType.FULL"><code class="name">var <span class="ident">FULL</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.ResultType.KEY_ONLY"><code class="name">var <span class="ident">KEY_ONLY</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.ResultType.PROJECTION"><code class="name">var <span class="ident">PROJECTION</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 <dt id="gcloud.aio.datastore.ResultType.UNSPECIFIED"><code class="name">var <span class="ident">UNSPECIFIED</span></code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 </dd>
@@ -3253,46 +2701,6 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;QueryResultBatch&#39;:
 <dt id="gcloud.aio.datastore.Value.key_kind"><code class="name">var <span class="ident">key_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Key:
-    path_element_kind = PathElement
-
-    def __init__(self, project: str, path: List[PathElement],
-                 namespace: str = &#39;&#39;) -&gt; None:
-        self.project = project
-        self.namespace = namespace
-        self.path = path
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Key):
-            return False
-
-        return bool(self.project == other.project
-                    and self.namespace == other.namespace
-                    and self.path == other.path)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Key&#39;:
-        return cls(data[&#39;partitionId&#39;][&#39;projectId&#39;],
-                   path=[cls.path_element_kind.from_repr(p)
-                         for p in data[&#39;path&#39;]],
-                   namespace=data[&#39;partitionId&#39;].get(&#39;namespaceId&#39;, &#39;&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        return {
-            &#39;partitionId&#39;: {
-                &#39;projectId&#39;: self.project,
-                &#39;namespaceId&#39;: self.namespace,
-            },
-            &#39;path&#39;: [p.to_repr() for p in self.path],
-        }</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -3616,7 +3024,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.5</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.4" />
+<meta name="generator" content="pdoc 0.7.5" />
 <title>gcloud.aio.datastore.query API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -273,96 +273,6 @@ class QueryResultBatch:
 <dt id="gcloud.aio.datastore.query.BaseQuery.value_kind"><code class="name">var <span class="ident">value_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Value:  # pylint:disable=useless-object-inheritance
-    key_kind = Key
-
-    def __init__(self, value: Any, exclude_from_indexes: bool = False) -&gt; None:
-        self.value = value
-        self.excludeFromIndexes = exclude_from_indexes
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Value):
-            return False
-
-        return bool(
-            self.excludeFromIndexes == other.excludeFromIndexes
-            and self.value == other.value)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
-        supported_types = cls._get_supported_types()
-        for value_type, type_name in supported_types.items():
-            json_key = type_name.value
-            if json_key in data:
-                if json_key == &#39;nullValue&#39;:
-                    value = None
-                elif value_type == datetime:
-                    value = datetime.strptime(data[json_key],
-                                              &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif hasattr(value_type, &#39;from_repr&#39;):
-                    value = value_type.from_repr(data[json_key])
-                else:
-                    value = value_type(data[json_key])
-                break
-        else:
-            supported = [name.value for name in supported_types.values()]
-            raise NotImplementedError(
-                &#39;{vals} does not contain a supported value type&#39;
-                &#39; (any of: {supported})&#39;.format(vals=data.keys(),
-                                                supported=supported))
-
-        # Google may not populate that field. This can happen with both
-        # indexed and non-indexed fields.
-        exclude_from_indexes = bool(data.get(&#39;excludeFromIndexes&#39;, False))
-
-        return cls(value=value, exclude_from_indexes=exclude_from_indexes)
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        value_type = self._infer_type(self.value)
-        if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
-                          TypeName.KEY}:
-            value = self.value.to_repr()
-        elif value_type == TypeName.TIMESTAMP:
-            value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-        else:
-            value = &#39;NULL_VALUE&#39; if self.value is None else self.value
-        return {
-            &#39;excludeFromIndexes&#39;: self.excludeFromIndexes,
-            value_type.value: value,
-        }
-
-    def _infer_type(self, value: Any) -&gt; TypeName:
-        odd_strings = {&#39;newstr&#39;, &#39;unicode&#39;}
-        kind = str if value.__class__.__name__ in odd_strings else type(value)
-        supported_types = self._get_supported_types()
-
-        try:
-            return supported_types[kind]
-        except KeyError:
-            raise NotImplementedError(
-                &#39;{} is not a supported value type (any of: &#39;
-                &#39;{})&#39;.format(kind, supported_types))
-
-    @classmethod
-    def _get_supported_types(cls):
-        from gcloud.aio.datastore import array
-        from gcloud.aio.datastore import entity
-
-        supported_types = TYPES
-        supported_types.update({
-            cls.key_kind: TypeName.KEY,
-            array.Array: TypeName.ARRAY,
-            entity.Entity: TypeName.ENTITY,
-        })
-        return supported_types</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -460,15 +370,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;BaseQuery&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.query.GQLQuery.json_key"><code class="name">var <span class="ident">json_key</span></code></dt>
 <dd>
-<section class="desc"><p>str(object='') -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.<strong>str</strong>() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -605,15 +507,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;GQLQuery&#39;:
 <dl>
 <dt id="gcloud.aio.datastore.query.Query.json_key"><code class="name">var <span class="ident">json_key</span></code></dt>
 <dd>
-<section class="desc"><p>str(object='') -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.<strong>str</strong>() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'.</p></section>
+<section class="desc"></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -762,47 +656,6 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Query&#39;:
 <dt id="gcloud.aio.datastore.query.QueryResultBatch.entity_result_kind"><code class="name">var <span class="ident">entity_result_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class EntityResult:
-    entity_kind = Entity
-
-    def __init__(self, entity: Entity, version: str = &#39;&#39;,
-                 cursor: str = &#39;&#39;) -&gt; None:
-        self.entity = entity
-        self.version = version
-        self.cursor = cursor
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, EntityResult):
-            return False
-
-        return bool(self.entity == other.entity
-                    and self.version == other.version
-                    and self.cursor == self.cursor)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;EntityResult&#39;:
-        return cls(cls.entity_kind.from_repr(data[&#39;entity&#39;]),
-                   data.get(&#39;version&#39;, &#39;&#39;),
-                   data.get(&#39;cursor&#39;, &#39;&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        data = {
-            &#39;entity&#39;: self.entity.to_repr(),
-        }
-        if self.version:
-            data[&#39;version&#39;] = self.version
-        if self.cursor:
-            data[&#39;cursor&#39;] = self.cursor
-
-        return data</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -917,7 +770,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;QueryResultBatch&#39;:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.5</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>

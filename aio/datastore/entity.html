@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.4" />
+<meta name="generator" content="pdoc 0.7.5" />
 <title>gcloud.aio.datastore.entity API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -167,140 +167,10 @@ class EntityResult:
 <dt id="gcloud.aio.datastore.entity.Entity.key_kind"><code class="name">var <span class="ident">key_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Key:
-    path_element_kind = PathElement
-
-    def __init__(self, project: str, path: List[PathElement],
-                 namespace: str = &#39;&#39;) -&gt; None:
-        self.project = project
-        self.namespace = namespace
-        self.path = path
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Key):
-            return False
-
-        return bool(self.project == other.project
-                    and self.namespace == other.namespace
-                    and self.path == other.path)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Key&#39;:
-        return cls(data[&#39;partitionId&#39;][&#39;projectId&#39;],
-                   path=[cls.path_element_kind.from_repr(p)
-                         for p in data[&#39;path&#39;]],
-                   namespace=data[&#39;partitionId&#39;].get(&#39;namespaceId&#39;, &#39;&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        return {
-            &#39;partitionId&#39;: {
-                &#39;projectId&#39;: self.project,
-                &#39;namespaceId&#39;: self.namespace,
-            },
-            &#39;path&#39;: [p.to_repr() for p in self.path],
-        }</code></pre>
-</details>
 </dd>
 <dt id="gcloud.aio.datastore.entity.Entity.value_kind"><code class="name">var <span class="ident">value_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Value:  # pylint:disable=useless-object-inheritance
-    key_kind = Key
-
-    def __init__(self, value: Any, exclude_from_indexes: bool = False) -&gt; None:
-        self.value = value
-        self.excludeFromIndexes = exclude_from_indexes
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Value):
-            return False
-
-        return bool(
-            self.excludeFromIndexes == other.excludeFromIndexes
-            and self.value == other.value)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
-        supported_types = cls._get_supported_types()
-        for value_type, type_name in supported_types.items():
-            json_key = type_name.value
-            if json_key in data:
-                if json_key == &#39;nullValue&#39;:
-                    value = None
-                elif value_type == datetime:
-                    value = datetime.strptime(data[json_key],
-                                              &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-                elif hasattr(value_type, &#39;from_repr&#39;):
-                    value = value_type.from_repr(data[json_key])
-                else:
-                    value = value_type(data[json_key])
-                break
-        else:
-            supported = [name.value for name in supported_types.values()]
-            raise NotImplementedError(
-                &#39;{vals} does not contain a supported value type&#39;
-                &#39; (any of: {supported})&#39;.format(vals=data.keys(),
-                                                supported=supported))
-
-        # Google may not populate that field. This can happen with both
-        # indexed and non-indexed fields.
-        exclude_from_indexes = bool(data.get(&#39;excludeFromIndexes&#39;, False))
-
-        return cls(value=value, exclude_from_indexes=exclude_from_indexes)
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        value_type = self._infer_type(self.value)
-        if value_type in {TypeName.ARRAY, TypeName.ENTITY, TypeName.GEOPOINT,
-                          TypeName.KEY}:
-            value = self.value.to_repr()
-        elif value_type == TypeName.TIMESTAMP:
-            value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
-        else:
-            value = &#39;NULL_VALUE&#39; if self.value is None else self.value
-        return {
-            &#39;excludeFromIndexes&#39;: self.excludeFromIndexes,
-            value_type.value: value,
-        }
-
-    def _infer_type(self, value: Any) -&gt; TypeName:
-        odd_strings = {&#39;newstr&#39;, &#39;unicode&#39;}
-        kind = str if value.__class__.__name__ in odd_strings else type(value)
-        supported_types = self._get_supported_types()
-
-        try:
-            return supported_types[kind]
-        except KeyError:
-            raise NotImplementedError(
-                &#39;{} is not a supported value type (any of: &#39;
-                &#39;{})&#39;.format(kind, supported_types))
-
-    @classmethod
-    def _get_supported_types(cls):
-        from gcloud.aio.datastore import array
-        from gcloud.aio.datastore import entity
-
-        supported_types = TYPES
-        supported_types.update({
-            cls.key_kind: TypeName.KEY,
-            array.Array: TypeName.ARRAY,
-            entity.Entity: TypeName.ENTITY,
-        })
-        return supported_types</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -399,46 +269,6 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Entity&#39;:
 <dt id="gcloud.aio.datastore.entity.EntityResult.entity_kind"><code class="name">var <span class="ident">entity_kind</span></code></dt>
 <dd>
 <section class="desc"></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Entity:
-    key_kind = Key
-    value_kind = Value
-
-    def __init__(self, key: Key, properties: Dict[str, dict] = None) -&gt; None:
-        self.key = key
-        self.properties = {k: self.value_kind.from_repr(v).value
-                           for k, v in (properties or {}).items()}
-
-    def __eq__(self, other: Any) -&gt; bool:
-        if not isinstance(other, Entity):
-            return False
-
-        return bool(self.key == other.key
-                    and self.properties == other.properties)
-
-    def __repr__(self) -&gt; str:
-        return str(self.to_repr())
-
-    @classmethod
-    def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Entity&#39;:
-        # https://cloud.google.com/datastore/docs/reference/data/rest/v1/Entity
-        # &#34;for example, an entity in Value.entity_value may have no key&#34;
-        if &#39;key&#39; in data:
-            key: Optional[Key] = cls.key_kind.from_repr(data[&#39;key&#39;])
-        else:
-            key = None
-        return cls(key, data.get(&#39;properties&#39;))
-
-    def to_repr(self) -&gt; Dict[str, Any]:
-        return {
-            &#39;key&#39;: self.key.to_repr() if self.key else None,
-            &#39;properties&#39;: {k: self.value_kind(v).to_repr()
-                           for k, v in self.properties.items()},
-        }</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -524,7 +354,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;EntityResult&#39;:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.5</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>
