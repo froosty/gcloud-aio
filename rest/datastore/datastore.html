@@ -33,6 +33,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import object
 import io
+import json
 import logging
 import os
 from typing import Any
@@ -53,16 +54,13 @@ from gcloud.rest.datastore.key import Key
 from gcloud.rest.datastore.query import BaseQuery
 from gcloud.rest.datastore.query import QueryResultBatch
 from gcloud.rest.datastore.value import Value
-try:
-    import ujson as json
-except ImportError:
-    import json  # type: ignore
 
 # Selectively load libraries based on the package
 if BUILD_GCLOUD_REST:
     from requests import Session
 else:
     from aiohttp import ClientSession as Session
+
 
 try:
     API_ROOT = &#39;http://{}/v1&#39;.format((os.environ[&#34;DATASTORE_EMULATOR_HOST&#34;]))

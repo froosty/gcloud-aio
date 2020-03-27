@@ -25,6 +25,7 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import io
+import json
 import logging
 import os
 from typing import Any
@@ -45,16 +46,13 @@ from gcloud.aio.datastore.key import Key
 from gcloud.aio.datastore.query import BaseQuery
 from gcloud.aio.datastore.query import QueryResultBatch
 from gcloud.aio.datastore.value import Value
-try:
-    import ujson as json
-except ImportError:
-    import json  # type: ignore
 
 # Selectively load libraries based on the package
 if BUILD_GCLOUD_REST:
     from requests import Session
 else:
     from aiohttp import ClientSession as Session
+
 
 try:
     API_ROOT = f&#39;http://{os.environ[&#34;DATASTORE_EMULATOR_HOST&#34;]}/v1&#39;

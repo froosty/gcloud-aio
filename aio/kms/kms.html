@@ -29,6 +29,7 @@
 An asynchronous client for Google Cloud KMS
 &#34;&#34;&#34;
 import io
+import json
 from typing import Dict
 from typing import Optional
 from typing import Union
@@ -43,10 +44,6 @@ if BUILD_GCLOUD_REST:
 else:
     from aiohttp import ClientSession as Session
 
-try:
-    import ujson as json
-except ImportError:
-    import json  # type: ignore
 
 API_ROOT = &#39;https://cloudkms.googleapis.com/v1&#39;
 LOCATION = &#39;global&#39;
