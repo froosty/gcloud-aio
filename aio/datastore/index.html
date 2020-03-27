@@ -2637,8 +2637,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;QueryResultBatch&#39;:
                 if json_key == &#39;nullValue&#39;:
                     value = None
                 elif value_type == datetime:
-                    value = datetime.strptime(data[json_key],
-                                              &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
+                    value = datetime.strptime(data[json_key][:-1][:26],
+                                              &#39;%Y-%m-%dT%H:%M:%S.%f&#39;)
                 elif hasattr(value_type, &#39;from_repr&#39;):
                     value = value_type.from_repr(data[json_key])
                 else:
@@ -2723,8 +2723,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
             if json_key == &#39;nullValue&#39;:
                 value = None
             elif value_type == datetime:
-                value = datetime.strptime(data[json_key],
-                                          &#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
+                value = datetime.strptime(data[json_key][:-1][:26],
+                                          &#39;%Y-%m-%dT%H:%M:%S.%f&#39;)
             elif hasattr(value_type, &#39;from_repr&#39;):
                 value = value_type.from_repr(data[json_key])
             else:
