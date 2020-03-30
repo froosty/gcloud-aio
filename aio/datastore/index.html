@@ -2636,6 +2636,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;QueryResultBatch&#39;:
             if json_key in data:
                 if json_key == &#39;nullValue&#39;:
                     value = None
+                elif json_key == &#39;blobValue&#39;:
+                    value = base64.b64decode(data[json_key])
                 elif value_type == datetime:
                     value = datetime.strptime(data[json_key][:-1][:26],
                                               &#39;%Y-%m-%dT%H:%M:%S.%f&#39;)
@@ -2664,6 +2666,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;QueryResultBatch&#39;:
             value = self.value.to_repr()
         elif value_type == TypeName.TIMESTAMP:
             value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
+        elif value_type == TypeName.BLOB:
+            value = base64.b64encode(self.value).decode(&#39;utf8&#39;)
         else:
             value = &#39;NULL_VALUE&#39; if self.value is None else self.value
         return {
@@ -2722,6 +2726,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
         if json_key in data:
             if json_key == &#39;nullValue&#39;:
                 value = None
+            elif json_key == &#39;blobValue&#39;:
+                value = base64.b64decode(data[json_key])
             elif value_type == datetime:
                 value = datetime.strptime(data[json_key][:-1][:26],
                                           &#39;%Y-%m-%dT%H:%M:%S.%f&#39;)
@@ -2763,6 +2769,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Value&#39;:
         value = self.value.to_repr()
     elif value_type == TypeName.TIMESTAMP:
         value = self.value.strftime(&#39;%Y-%m-%dT%H:%M:%S.%f000Z&#39;)
+    elif value_type == TypeName.BLOB:
+        value = base64.b64encode(self.value).decode(&#39;utf8&#39;)
     else:
         value = &#39;NULL_VALUE&#39; if self.value is None else self.value
     return {
