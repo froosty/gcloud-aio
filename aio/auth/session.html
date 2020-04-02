@@ -125,6 +125,9 @@ if not BUILD_GCLOUD_REST:
                 resp.raise_for_status()
             return resp
 
+        async def close(self) -&gt; None:
+            await self._session.close()
+
 if BUILD_GCLOUD_REST:
     import requests
 
@@ -183,7 +186,10 @@ if BUILD_GCLOUD_REST:
                                             **kwargs)
             if auto_raise_for_status:
                 resp.raise_for_status()
-            return resp</code></pre>
+            return resp
+
+        def close(self) -&gt; None:
+            self._session.close()</code></pre>
 </details>
 </section>
 <section>
@@ -251,7 +257,10 @@ if BUILD_GCLOUD_REST:
                                           **kwargs)
         if auto_raise_for_status:
             resp.raise_for_status()
-        return resp</code></pre>
+        return resp
+
+    async def close(self) -&gt; None:
+        await self._session.close()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -276,6 +285,19 @@ def session(self) -&gt; aiohttp.ClientSession:
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.aio.auth.session.AioSession.close"><code class="name flex">
+<span>async def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def close(self) -&gt; None:
+    await self._session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.aio.auth.session.AioSession.delete"><code class="name flex">
 <span>async def <span class="ident">delete</span></span>(<span>self, url, headers, params, timeout=10)</span>
 </code></dt>
@@ -534,6 +556,7 @@ def request(self, method: str, url: str, headers: Dict[str, str],
 <li>
 <h4><code><a title="gcloud.aio.auth.session.AioSession" href="#gcloud.aio.auth.session.AioSession">AioSession</a></code></h4>
 <ul class="two-column">
+<li><code><a title="gcloud.aio.auth.session.AioSession.close" href="#gcloud.aio.auth.session.AioSession.close">close</a></code></li>
 <li><code><a title="gcloud.aio.auth.session.AioSession.delete" href="#gcloud.aio.auth.session.AioSession.delete">delete</a></code></li>
 <li><code><a title="gcloud.aio.auth.session.AioSession.get" href="#gcloud.aio.auth.session.AioSession.get">get</a></code></li>
 <li><code><a title="gcloud.aio.auth.session.AioSession.post" href="#gcloud.aio.auth.session.AioSession.post">post</a></code></li>

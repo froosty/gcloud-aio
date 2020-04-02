@@ -765,10 +765,32 @@ with the link.</p>
             break
 
         data: dict = await resp.json()
-        return data</code></pre>
+        return data
+
+    async def close(self):
+        await self.session.close()
+
+    async def __aenter__(self) -&gt; &#39;Storage&#39;:
+        return self
+
+    async def __aexit__(self, *args) -&gt; None:
+        await self.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.aio.storage.Storage.close"><code class="name flex">
+<span>async def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def close(self):
+    await self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.aio.storage.Storage.copy"><code class="name flex">
 <span>async def <span class="ident">copy</span></span>(<span>self, bucket, object_name, destination_bucket, *, new_name=None, headers=None, params=None, timeout=10, session=None)</span>
 </code></dt>
@@ -1055,6 +1077,7 @@ copy operation, you then have 1 week to complete the copy job.</p>
 <li>
 <h4><code><a title="gcloud.aio.storage.Storage" href="#gcloud.aio.storage.Storage">Storage</a></code></h4>
 <ul class="two-column">
+<li><code><a title="gcloud.aio.storage.Storage.close" href="#gcloud.aio.storage.Storage.close">close</a></code></li>
 <li><code><a title="gcloud.aio.storage.Storage.copy" href="#gcloud.aio.storage.Storage.copy">copy</a></code></li>
 <li><code><a title="gcloud.aio.storage.Storage.delete" href="#gcloud.aio.storage.Storage.delete">delete</a></code></li>
 <li><code><a title="gcloud.aio.storage.Storage.download" href="#gcloud.aio.storage.Storage.download">download</a></code></li>

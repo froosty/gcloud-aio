@@ -448,7 +448,16 @@ class Storage(object):
             break
 
         data       = resp.json()
-        return data</code></pre>
+        return data
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)             :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 </section>
 <section>
@@ -840,10 +849,32 @@ class Storage(object):
             break
 
         data       = resp.json()
-        return data</code></pre>
+        return data
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)             :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.rest.storage.storage.Storage.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.rest.storage.storage.Storage.copy"><code class="name flex">
 <span>def <span class="ident">copy</span></span>(<span>self, bucket, object_name, destination_bucket, **_3to2kwargs)</span>
 </code></dt>
@@ -1154,6 +1185,7 @@ class Storage(object):
 <li>
 <h4><code><a title="gcloud.rest.storage.storage.Storage" href="#gcloud.rest.storage.storage.Storage">Storage</a></code></h4>
 <ul class="two-column">
+<li><code><a title="gcloud.rest.storage.storage.Storage.close" href="#gcloud.rest.storage.storage.Storage.close">close</a></code></li>
 <li><code><a title="gcloud.rest.storage.storage.Storage.copy" href="#gcloud.rest.storage.storage.Storage.copy">copy</a></code></li>
 <li><code><a title="gcloud.rest.storage.storage.Storage.delete" href="#gcloud.rest.storage.storage.Storage.delete">delete</a></code></li>
 <li><code><a title="gcloud.rest.storage.storage.Storage.download" href="#gcloud.rest.storage.storage.Storage.download">download</a></code></li>
