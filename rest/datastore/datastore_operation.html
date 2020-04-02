@@ -28,6 +28,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import str
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object
@@ -47,6 +48,9 @@ class DatastoreOperation(object):
         self.metadata = metadata
         self.error = error
         self.response = response
+
+    def __repr__(self)       :
+        return str(self.to_repr())
 
     @classmethod
     def from_repr(cls, data                )                        :
@@ -93,6 +97,9 @@ class DatastoreOperation(object):
         self.metadata = metadata
         self.error = error
         self.response = response
+
+    def __repr__(self)       :
+        return str(self.to_repr())
 
     @classmethod
     def from_repr(cls, data                )                        :

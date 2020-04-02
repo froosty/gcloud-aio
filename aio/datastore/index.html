@@ -1109,6 +1109,9 @@ def make_mutation(cls, operation: Operation, key: Key,
         self.error = error
         self.response = response
 
+    def __repr__(self) -&gt; str:
+        return str(self.to_repr())
+
     @classmethod
     def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;DatastoreOperation&#39;:
         return cls(data[&#39;name&#39;], data.get(&#39;done&#39;, False), data.get(&#39;metadata&#39;),
