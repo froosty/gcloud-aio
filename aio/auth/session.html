@@ -130,7 +130,8 @@ if not BUILD_GCLOUD_REST:
             return resp
 
         async def close(self) -&gt; None:
-            await self._session.close()
+            if self._session:
+                await self._session.close()
 
 
 if BUILD_GCLOUD_REST:
@@ -194,7 +195,8 @@ if BUILD_GCLOUD_REST:
             return resp
 
         def close(self) -&gt; None:
-            self._session.close()</code></pre>
+            if self._session:
+                self._session.close()</code></pre>
 </details>
 </section>
 <section>
@@ -265,7 +267,8 @@ if BUILD_GCLOUD_REST:
         return resp
 
     async def close(self) -&gt; None:
-        await self._session.close()</code></pre>
+        if self._session:
+            await self._session.close()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -300,7 +303,8 @@ def session(self) -&gt; aiohttp.ClientSession:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def close(self) -&gt; None:
-    await self._session.close()</code></pre>
+    if self._session:
+        await self._session.close()</code></pre>
 </details>
 </dd>
 <dt id="gcloud.aio.auth.session.AioSession.delete"><code class="name flex">

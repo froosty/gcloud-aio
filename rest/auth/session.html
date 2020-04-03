@@ -137,7 +137,8 @@ if not BUILD_GCLOUD_REST:
             return resp
 
         def close(self)        :
-            self._session.close()
+            if self._session:
+                self._session.close()
 
 
 if BUILD_GCLOUD_REST:
@@ -201,7 +202,8 @@ if BUILD_GCLOUD_REST:
             return resp
 
         def close(self)        :
-            self._session.close()</code></pre>
+            if self._session:
+                self._session.close()</code></pre>
 </details>
 </section>
 <section>
@@ -445,7 +447,8 @@ def request(self, method     , url     , headers                ,
         return resp
 
     def close(self)        :
-        self._session.close()</code></pre>
+        if self._session:
+            self._session.close()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -491,7 +494,8 @@ def session(self)                    :
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def close(self)        :
-    self._session.close()</code></pre>
+    if self._session:
+        self._session.close()</code></pre>
 </details>
 </dd>
 <dt id="gcloud.rest.auth.session.SyncSession.delete"><code class="name flex">
