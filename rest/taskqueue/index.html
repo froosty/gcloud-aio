@@ -206,10 +206,32 @@ Base64 are respectively replaced by - and _</p></section>
             &#39;responseView&#39;: &#39;FULL&#39; if full else &#39;BASIC&#39;,
         }
 
-        return self._request(&#39;POST&#39;, url, json=body, session=session)</code></pre>
+        return self._request(&#39;POST&#39;, url, json=body, session=session)
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)               :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.rest.taskqueue.PushQueue.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.rest.taskqueue.PushQueue.create"><code class="name flex">
 <span>def <span class="ident">create</span></span>(<span>self, task, session=None)</span>
 </code></dt>
@@ -356,6 +378,7 @@ Base64 are respectively replaced by - and _</p></section>
 <li>
 <h4><code><a title="gcloud.rest.taskqueue.PushQueue" href="#gcloud.rest.taskqueue.PushQueue">PushQueue</a></code></h4>
 <ul class="two-column">
+<li><code><a title="gcloud.rest.taskqueue.PushQueue.close" href="#gcloud.rest.taskqueue.PushQueue.close">close</a></code></li>
 <li><code><a title="gcloud.rest.taskqueue.PushQueue.create" href="#gcloud.rest.taskqueue.PushQueue.create">create</a></code></li>
 <li><code><a title="gcloud.rest.taskqueue.PushQueue.delete" href="#gcloud.rest.taskqueue.PushQueue.delete">delete</a></code></li>
 <li><code><a title="gcloud.rest.taskqueue.PushQueue.get" href="#gcloud.rest.taskqueue.PushQueue.get">get</a></code></li>

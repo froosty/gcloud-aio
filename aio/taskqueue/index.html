@@ -200,10 +200,32 @@ Base64 are respectively replaced by - and _</p></section>
             &#39;responseView&#39;: &#39;FULL&#39; if full else &#39;BASIC&#39;,
         }
 
-        return await self._request(&#39;POST&#39;, url, json=body, session=session)</code></pre>
+        return await self._request(&#39;POST&#39;, url, json=body, session=session)
+
+    async def close(self):
+        await self.session.close()
+
+    async def __aenter__(self) -&gt; &#39;PushQueue&#39;:
+        return self
+
+    async def __aexit__(self, *args) -&gt; None:
+        await self.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.aio.taskqueue.PushQueue.close"><code class="name flex">
+<span>async def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def close(self):
+    await self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.aio.taskqueue.PushQueue.create"><code class="name flex">
 <span>async def <span class="ident">create</span></span>(<span>self, task, session=None)</span>
 </code></dt>
@@ -350,6 +372,7 @@ Base64 are respectively replaced by - and _</p></section>
 <li>
 <h4><code><a title="gcloud.aio.taskqueue.PushQueue" href="#gcloud.aio.taskqueue.PushQueue">PushQueue</a></code></h4>
 <ul class="two-column">
+<li><code><a title="gcloud.aio.taskqueue.PushQueue.close" href="#gcloud.aio.taskqueue.PushQueue.close">close</a></code></li>
 <li><code><a title="gcloud.aio.taskqueue.PushQueue.create" href="#gcloud.aio.taskqueue.PushQueue.create">create</a></code></li>
 <li><code><a title="gcloud.aio.taskqueue.PushQueue.delete" href="#gcloud.aio.taskqueue.PushQueue.delete">delete</a></code></li>
 <li><code><a title="gcloud.aio.taskqueue.PushQueue.get" href="#gcloud.aio.taskqueue.PushQueue.get">get</a></code></li>
