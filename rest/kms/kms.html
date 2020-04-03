@@ -105,7 +105,16 @@ class KMS(object):
         resp = s.post(url, headers=self.headers(), data=body)
 
         ciphertext      = (resp.json())[&#39;ciphertext&#39;]
-        return ciphertext</code></pre>
+        return ciphertext
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)         :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 </section>
 <section>
@@ -173,10 +182,32 @@ class KMS(object):
         resp = s.post(url, headers=self.headers(), data=body)
 
         ciphertext      = (resp.json())[&#39;ciphertext&#39;]
-        return ciphertext</code></pre>
+        return ciphertext
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)         :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.rest.kms.kms.KMS.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.rest.kms.kms.KMS.decrypt"><code class="name flex">
 <span>def <span class="ident">decrypt</span></span>(<span>self, ciphertext, session=None)</span>
 </code></dt>
@@ -261,6 +292,7 @@ class KMS(object):
 <li>
 <h4><code><a title="gcloud.rest.kms.kms.KMS" href="#gcloud.rest.kms.kms.KMS">KMS</a></code></h4>
 <ul class="">
+<li><code><a title="gcloud.rest.kms.kms.KMS.close" href="#gcloud.rest.kms.kms.KMS.close">close</a></code></li>
 <li><code><a title="gcloud.rest.kms.kms.KMS.decrypt" href="#gcloud.rest.kms.kms.KMS.decrypt">decrypt</a></code></li>
 <li><code><a title="gcloud.rest.kms.kms.KMS.encrypt" href="#gcloud.rest.kms.kms.KMS.encrypt">encrypt</a></code></li>
 <li><code><a title="gcloud.rest.kms.kms.KMS.headers" href="#gcloud.rest.kms.kms.KMS.headers">headers</a></code></li>

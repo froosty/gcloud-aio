@@ -98,7 +98,16 @@ class KMS:
         resp = await s.post(url, headers=await self.headers(), data=body)
 
         ciphertext: str = (await resp.json())[&#39;ciphertext&#39;]
-        return ciphertext</code></pre>
+        return ciphertext
+
+    async def close(self):
+        await self.session.close()
+
+    async def __aenter__(self) -&gt; &#39;KMS&#39;:
+        return self
+
+    async def __aexit__(self, *args) -&gt; None:
+        await self.close()</code></pre>
 </details>
 </section>
 <section>
@@ -166,10 +175,32 @@ class KMS:
         resp = await s.post(url, headers=await self.headers(), data=body)
 
         ciphertext: str = (await resp.json())[&#39;ciphertext&#39;]
-        return ciphertext</code></pre>
+        return ciphertext
+
+    async def close(self):
+        await self.session.close()
+
+    async def __aenter__(self) -&gt; &#39;KMS&#39;:
+        return self
+
+    async def __aexit__(self, *args) -&gt; None:
+        await self.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.aio.kms.kms.KMS.close"><code class="name flex">
+<span>async def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def close(self):
+    await self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.aio.kms.kms.KMS.decrypt"><code class="name flex">
 <span>async def <span class="ident">decrypt</span></span>(<span>self, ciphertext, session=None)</span>
 </code></dt>
@@ -254,6 +285,7 @@ class KMS:
 <li>
 <h4><code><a title="gcloud.aio.kms.kms.KMS" href="#gcloud.aio.kms.kms.KMS">KMS</a></code></h4>
 <ul class="">
+<li><code><a title="gcloud.aio.kms.kms.KMS.close" href="#gcloud.aio.kms.kms.KMS.close">close</a></code></li>
 <li><code><a title="gcloud.aio.kms.kms.KMS.decrypt" href="#gcloud.aio.kms.kms.KMS.decrypt">decrypt</a></code></li>
 <li><code><a title="gcloud.aio.kms.kms.KMS.encrypt" href="#gcloud.aio.kms.kms.KMS.encrypt">encrypt</a></code></li>
 <li><code><a title="gcloud.aio.kms.kms.KMS.headers" href="#gcloud.aio.kms.kms.KMS.headers">headers</a></code></li>
