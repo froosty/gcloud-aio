@@ -278,7 +278,16 @@ class Table(object):
         s = SyncSession(session) if session else self.session
         resp = s.post(url, data=payload, headers=headers, params=None,
                             timeout=timeout)
-        return resp.json()</code></pre>
+        return resp.json()
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)           :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 </section>
 <section>
@@ -518,10 +527,32 @@ class Table(object):
         s = SyncSession(session) if session else self.session
         resp = s.post(url, data=payload, headers=headers, params=None,
                             timeout=timeout)
-        return resp.json()</code></pre>
+        return resp.json()
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)           :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.rest.bigquery.bigquery.Table.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.rest.bigquery.bigquery.Table.copy"><code class="name flex">
 <span>def <span class="ident">copy</span></span>(<span>self, destination_project, destination_dataset, destination_table, session=None, timeout=60)</span>
 </code></dt>
@@ -754,6 +785,7 @@ class Table(object):
 <li>
 <h4><code><a title="gcloud.rest.bigquery.bigquery.Table" href="#gcloud.rest.bigquery.bigquery.Table">Table</a></code></h4>
 <ul class="two-column">
+<li><code><a title="gcloud.rest.bigquery.bigquery.Table.close" href="#gcloud.rest.bigquery.bigquery.Table.close">close</a></code></li>
 <li><code><a title="gcloud.rest.bigquery.bigquery.Table.copy" href="#gcloud.rest.bigquery.bigquery.Table.copy">copy</a></code></li>
 <li><code><a title="gcloud.rest.bigquery.bigquery.Table.delete" href="#gcloud.rest.bigquery.bigquery.Table.delete">delete</a></code></li>
 <li><code><a title="gcloud.rest.bigquery.bigquery.Table.get" href="#gcloud.rest.bigquery.bigquery.Table.get">get</a></code></li>

@@ -268,7 +268,16 @@ class Table:
         s = AioSession(session) if session else self.session
         resp = await s.post(url, data=payload, headers=headers, params=None,
                             timeout=timeout)
-        return await resp.json()</code></pre>
+        return await resp.json()
+
+    async def close(self):
+        await self.session.close()
+
+    async def __aenter__(self) -&gt; &#39;Table&#39;:
+        return self
+
+    async def __aexit__(self, *args) -&gt; None:
+        await self.close()</code></pre>
 </details>
 </section>
 <section>
@@ -506,10 +515,32 @@ class Table:
         s = AioSession(session) if session else self.session
         resp = await s.post(url, data=payload, headers=headers, params=None,
                             timeout=timeout)
-        return await resp.json()</code></pre>
+        return await resp.json()
+
+    async def close(self):
+        await self.session.close()
+
+    async def __aenter__(self) -&gt; &#39;Table&#39;:
+        return self
+
+    async def __aexit__(self, *args) -&gt; None:
+        await self.close()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.aio.bigquery.bigquery.Table.close"><code class="name flex">
+<span>async def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def close(self):
+    await self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.aio.bigquery.bigquery.Table.copy"><code class="name flex">
 <span>async def <span class="ident">copy</span></span>(<span>self, destination_project, destination_dataset, destination_table, session=None, timeout=60)</span>
 </code></dt>
@@ -746,6 +777,7 @@ the rows failed to get inserted.</p></section>
 <li>
 <h4><code><a title="gcloud.aio.bigquery.bigquery.Table" href="#gcloud.aio.bigquery.bigquery.Table">Table</a></code></h4>
 <ul class="two-column">
+<li><code><a title="gcloud.aio.bigquery.bigquery.Table.close" href="#gcloud.aio.bigquery.bigquery.Table.close">close</a></code></li>
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.copy" href="#gcloud.aio.bigquery.bigquery.Table.copy">copy</a></code></li>
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.delete" href="#gcloud.aio.bigquery.bigquery.Table.delete">delete</a></code></li>
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.get" href="#gcloud.aio.bigquery.bigquery.Table.get">get</a></code></li>
