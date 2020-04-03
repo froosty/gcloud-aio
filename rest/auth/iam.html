@@ -157,7 +157,16 @@ class IamClient(object):
 
         resp = s.post(url=url, data=json_str, headers=headers,
                             timeout=timeout)
-        return resp.json()</code></pre>
+        return resp.json()
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)               :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 </section>
 <section>
@@ -280,7 +289,16 @@ class IamClient(object):
 
         resp = s.post(url=url, data=json_str, headers=headers,
                             timeout=timeout)
-        return resp.json()</code></pre>
+        return resp.json()
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)               :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -299,6 +317,19 @@ def service_account_email(self)                 :
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="gcloud.rest.auth.iam.IamClient.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    self.session.close()</code></pre>
+</details>
+</dd>
 <dt id="gcloud.rest.auth.iam.IamClient.get_public_key"><code class="name flex">
 <span>def <span class="ident">get_public_key</span></span>(<span>self, key_id=None, key=None, service_account_email=None, project=None, session=None, timeout=10)</span>
 </code></dt>
@@ -443,6 +474,7 @@ def service_account_email(self)                 :
 <li>
 <h4><code><a title="gcloud.rest.auth.iam.IamClient" href="#gcloud.rest.auth.iam.IamClient">IamClient</a></code></h4>
 <ul class="">
+<li><code><a title="gcloud.rest.auth.iam.IamClient.close" href="#gcloud.rest.auth.iam.IamClient.close">close</a></code></li>
 <li><code><a title="gcloud.rest.auth.iam.IamClient.get_public_key" href="#gcloud.rest.auth.iam.IamClient.get_public_key">get_public_key</a></code></li>
 <li><code><a title="gcloud.rest.auth.iam.IamClient.headers" href="#gcloud.rest.auth.iam.IamClient.headers">headers</a></code></li>
 <li><code><a title="gcloud.rest.auth.iam.IamClient.list_public_keys" href="#gcloud.rest.auth.iam.IamClient.list_public_keys">list_public_keys</a></code></li>
