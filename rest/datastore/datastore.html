@@ -404,7 +404,16 @@ class Datastore(object):
                       session                    = None)        :
         transaction = self.beginTransaction(session=session)
         mutation = self.make_mutation(operation, key, properties=properties)
-        self.commit([mutation], transaction=transaction, session=session)</code></pre>
+        self.commit([mutation], transaction=transaction, session=session)
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)               :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 </section>
 <section>
@@ -753,7 +762,16 @@ class Datastore(object):
                       session                    = None)        :
         transaction = self.beginTransaction(session=session)
         mutation = self.make_mutation(operation, key, properties=properties)
-        self.commit([mutation], transaction=transaction, session=session)</code></pre>
+        self.commit([mutation], transaction=transaction, session=session)
+
+    def close(self):
+        self.session.close()
+
+    def __enter__(self)               :
+        return self
+
+    def __exit__(self, *args)        :
+        self.close()</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -864,6 +882,19 @@ def make_mutation(cls, operation           , key     ,
 
     transaction      = data[&#39;transaction&#39;]
     return transaction</code></pre>
+</details>
+</dd>
+<dt id="gcloud.rest.datastore.datastore.Datastore.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    self.session.close()</code></pre>
 </details>
 </dd>
 <dt id="gcloud.rest.datastore.datastore.Datastore.commit"><code class="name flex">
@@ -1249,6 +1280,7 @@ def make_mutation(cls, operation           , key     ,
 <ul class="">
 <li><code><a title="gcloud.rest.datastore.datastore.Datastore.allocateIds" href="#gcloud.rest.datastore.datastore.Datastore.allocateIds">allocateIds</a></code></li>
 <li><code><a title="gcloud.rest.datastore.datastore.Datastore.beginTransaction" href="#gcloud.rest.datastore.datastore.Datastore.beginTransaction">beginTransaction</a></code></li>
+<li><code><a title="gcloud.rest.datastore.datastore.Datastore.close" href="#gcloud.rest.datastore.datastore.Datastore.close">close</a></code></li>
 <li><code><a title="gcloud.rest.datastore.datastore.Datastore.commit" href="#gcloud.rest.datastore.datastore.Datastore.commit">commit</a></code></li>
 <li><code><a title="gcloud.rest.datastore.datastore.Datastore.datastore_operation_kind" href="#gcloud.rest.datastore.datastore.Datastore.datastore_operation_kind">datastore_operation_kind</a></code></li>
 <li><code><a title="gcloud.rest.datastore.datastore.Datastore.delete" href="#gcloud.rest.datastore.datastore.Datastore.delete">delete</a></code></li>
