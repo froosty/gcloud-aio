@@ -450,6 +450,25 @@ class Storage(object):
         data       = resp.json()
         return data
 
+    def get_bucket_metadata(self, bucket     , **_3to2kwargs)        :
+        if &#39;timeout&#39; in _3to2kwargs: timeout = _3to2kwargs[&#39;timeout&#39;]; del _3to2kwargs[&#39;timeout&#39;]
+        else: timeout =  10
+        if &#39;session&#39; in _3to2kwargs: session = _3to2kwargs[&#39;session&#39;]; del _3to2kwargs[&#39;session&#39;]
+        else: session =  None
+        if &#39;params&#39; in _3to2kwargs: params = _3to2kwargs[&#39;params&#39;]; del _3to2kwargs[&#39;params&#39;]
+        else: params =  None
+        token = self.token.get()
+        url = &#39;{}/{}/&#39;.format((API_ROOT), (bucket))
+        headers = {
+            &#39;Authorization&#39;: &#39;Bearer {}&#39;.format((token)),
+        }
+
+        s = SyncSession(session) if session else self.session
+        resp = s.get(url, headers=headers, params=params or {},
+                           timeout=timeout)
+        data       = resp.json()
+        return data
+
     def close(self):
         self.session.close()
 
@@ -851,6 +870,25 @@ class Storage(object):
         data       = resp.json()
         return data
 
+    def get_bucket_metadata(self, bucket     , **_3to2kwargs)        :
+        if &#39;timeout&#39; in _3to2kwargs: timeout = _3to2kwargs[&#39;timeout&#39;]; del _3to2kwargs[&#39;timeout&#39;]
+        else: timeout =  10
+        if &#39;session&#39; in _3to2kwargs: session = _3to2kwargs[&#39;session&#39;]; del _3to2kwargs[&#39;session&#39;]
+        else: session =  None
+        if &#39;params&#39; in _3to2kwargs: params = _3to2kwargs[&#39;params&#39;]; del _3to2kwargs[&#39;params&#39;]
+        else: params =  None
+        token = self.token.get()
+        url = &#39;{}/{}/&#39;.format((API_ROOT), (bucket))
+        headers = {
+            &#39;Authorization&#39;: &#39;Bearer {}&#39;.format((token)),
+        }
+
+        s = SyncSession(session) if session else self.session
+        resp = s.get(url, headers=headers, params=params or {},
+                           timeout=timeout)
+        data       = resp.json()
+        return data
+
     def close(self):
         self.session.close()
 
@@ -1038,6 +1076,35 @@ class Storage(object):
     return Bucket(self, bucket_name)</code></pre>
 </details>
 </dd>
+<dt id="gcloud.rest.storage.storage.Storage.get_bucket_metadata"><code class="name flex">
+<span>def <span class="ident">get_bucket_metadata</span></span>(<span>self, bucket, **_3to2kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bucket_metadata(self, bucket     , **_3to2kwargs)        :
+    if &#39;timeout&#39; in _3to2kwargs: timeout = _3to2kwargs[&#39;timeout&#39;]; del _3to2kwargs[&#39;timeout&#39;]
+    else: timeout =  10
+    if &#39;session&#39; in _3to2kwargs: session = _3to2kwargs[&#39;session&#39;]; del _3to2kwargs[&#39;session&#39;]
+    else: session =  None
+    if &#39;params&#39; in _3to2kwargs: params = _3to2kwargs[&#39;params&#39;]; del _3to2kwargs[&#39;params&#39;]
+    else: params =  None
+    token = self.token.get()
+    url = &#39;{}/{}/&#39;.format((API_ROOT), (bucket))
+    headers = {
+        &#39;Authorization&#39;: &#39;Bearer {}&#39;.format((token)),
+    }
+
+    s = SyncSession(session) if session else self.session
+    resp = s.get(url, headers=headers, params=params or {},
+                       timeout=timeout)
+    data       = resp.json()
+    return data</code></pre>
+</details>
+</dd>
 <dt id="gcloud.rest.storage.storage.Storage.list_objects"><code class="name flex">
 <span>def <span class="ident">list_objects</span></span>(<span>self, bucket, **_3to2kwargs)</span>
 </code></dt>
@@ -1191,6 +1258,7 @@ class Storage(object):
 <li><code><a title="gcloud.rest.storage.storage.Storage.download" href="#gcloud.rest.storage.storage.Storage.download">download</a></code></li>
 <li><code><a title="gcloud.rest.storage.storage.Storage.download_metadata" href="#gcloud.rest.storage.storage.Storage.download_metadata">download_metadata</a></code></li>
 <li><code><a title="gcloud.rest.storage.storage.Storage.get_bucket" href="#gcloud.rest.storage.storage.Storage.get_bucket">get_bucket</a></code></li>
+<li><code><a title="gcloud.rest.storage.storage.Storage.get_bucket_metadata" href="#gcloud.rest.storage.storage.Storage.get_bucket_metadata">get_bucket_metadata</a></code></li>
 <li><code><a title="gcloud.rest.storage.storage.Storage.list_objects" href="#gcloud.rest.storage.storage.Storage.list_objects">list_objects</a></code></li>
 <li><code><a title="gcloud.rest.storage.storage.Storage.upload" href="#gcloud.rest.storage.storage.Storage.upload">upload</a></code></li>
 </ul>

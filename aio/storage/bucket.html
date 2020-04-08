@@ -88,7 +88,12 @@ class Bucket:
 
 
     def new_blob(self, blob_name: str) -&gt; Blob:
-        return Blob(self, blob_name, {&#39;size&#39;: 0})</code></pre>
+        return Blob(self, blob_name, {&#39;size&#39;: 0})
+
+    async def get_metadata(self, params: dict = None,
+                           session: Optional[Session] = None) -&gt; dict:
+        return await self.storage.get_bucket_metadata(self.name, params=params,
+                                                      session=session)</code></pre>
 </details>
 </section>
 <section>
@@ -155,7 +160,12 @@ class Bucket:
 
 
     def new_blob(self, blob_name: str) -&gt; Blob:
-        return Blob(self, blob_name, {&#39;size&#39;: 0})</code></pre>
+        return Blob(self, blob_name, {&#39;size&#39;: 0})
+
+    async def get_metadata(self, params: dict = None,
+                           session: Optional[Session] = None) -&gt; dict:
+        return await self.storage.get_bucket_metadata(self.name, params=params,
+                                                      session=session)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -199,6 +209,21 @@ class Bucket:
                                                     session=session)
 
     return Blob(self, blob_name, metadata)</code></pre>
+</details>
+</dd>
+<dt id="gcloud.aio.storage.bucket.Bucket.get_metadata"><code class="name flex">
+<span>async def <span class="ident">get_metadata</span></span>(<span>self, params=None, session=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def get_metadata(self, params: dict = None,
+                       session: Optional[Session] = None) -&gt; dict:
+    return await self.storage.get_bucket_metadata(self.name, params=params,
+                                                  session=session)</code></pre>
 </details>
 </dd>
 <dt id="gcloud.aio.storage.bucket.Bucket.list_blobs"><code class="name flex">
@@ -263,6 +288,7 @@ class Bucket:
 <ul class="">
 <li><code><a title="gcloud.aio.storage.bucket.Bucket.blob_exists" href="#gcloud.aio.storage.bucket.Bucket.blob_exists">blob_exists</a></code></li>
 <li><code><a title="gcloud.aio.storage.bucket.Bucket.get_blob" href="#gcloud.aio.storage.bucket.Bucket.get_blob">get_blob</a></code></li>
+<li><code><a title="gcloud.aio.storage.bucket.Bucket.get_metadata" href="#gcloud.aio.storage.bucket.Bucket.get_metadata">get_metadata</a></code></li>
 <li><code><a title="gcloud.aio.storage.bucket.Bucket.list_blobs" href="#gcloud.aio.storage.bucket.Bucket.list_blobs">list_blobs</a></code></li>
 <li><code><a title="gcloud.aio.storage.bucket.Bucket.new_blob" href="#gcloud.aio.storage.bucket.Bucket.new_blob">new_blob</a></code></li>
 </ul>

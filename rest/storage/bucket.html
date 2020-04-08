@@ -95,7 +95,12 @@ class Bucket(object):
 
 
     def new_blob(self, blob_name     )        :
-        return Blob(self, blob_name, {&#39;size&#39;: 0})</code></pre>
+        return Blob(self, blob_name, {&#39;size&#39;: 0})
+
+    def get_metadata(self, params       = None,
+                           session                    = None)        :
+        return self.storage.get_bucket_metadata(self.name, params=params,
+                                                      session=session)</code></pre>
 </details>
 </section>
 <section>
@@ -162,7 +167,12 @@ class Bucket(object):
 
 
     def new_blob(self, blob_name     )        :
-        return Blob(self, blob_name, {&#39;size&#39;: 0})</code></pre>
+        return Blob(self, blob_name, {&#39;size&#39;: 0})
+
+    def get_metadata(self, params       = None,
+                           session                    = None)        :
+        return self.storage.get_bucket_metadata(self.name, params=params,
+                                                      session=session)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -206,6 +216,21 @@ class Bucket(object):
                                                     session=session)
 
     return Blob(self, blob_name, metadata)</code></pre>
+</details>
+</dd>
+<dt id="gcloud.rest.storage.bucket.Bucket.get_metadata"><code class="name flex">
+<span>def <span class="ident">get_metadata</span></span>(<span>self, params=None, session=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_metadata(self, params       = None,
+                       session                    = None)        :
+    return self.storage.get_bucket_metadata(self.name, params=params,
+                                                  session=session)</code></pre>
 </details>
 </dd>
 <dt id="gcloud.rest.storage.bucket.Bucket.list_blobs"><code class="name flex">
@@ -270,6 +295,7 @@ class Bucket(object):
 <ul class="">
 <li><code><a title="gcloud.rest.storage.bucket.Bucket.blob_exists" href="#gcloud.rest.storage.bucket.Bucket.blob_exists">blob_exists</a></code></li>
 <li><code><a title="gcloud.rest.storage.bucket.Bucket.get_blob" href="#gcloud.rest.storage.bucket.Bucket.get_blob">get_blob</a></code></li>
+<li><code><a title="gcloud.rest.storage.bucket.Bucket.get_metadata" href="#gcloud.rest.storage.bucket.Bucket.get_metadata">get_metadata</a></code></li>
 <li><code><a title="gcloud.rest.storage.bucket.Bucket.list_blobs" href="#gcloud.rest.storage.bucket.Bucket.list_blobs">list_blobs</a></code></li>
 <li><code><a title="gcloud.rest.storage.bucket.Bucket.new_blob" href="#gcloud.rest.storage.bucket.Bucket.new_blob">new_blob</a></code></li>
 </ul>

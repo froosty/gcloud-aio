@@ -391,6 +391,21 @@ class Storage:
         data: dict = await resp.json()
         return data
 
+    async def get_bucket_metadata(self, bucket: str, *, params: dict = None,
+                                  session: Optional[Session] = None,
+                                  timeout: int = 10) -&gt; dict:
+        token = await self.token.get()
+        url = f&#39;{API_ROOT}/{bucket}/&#39;
+        headers = {
+            &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
+        }
+
+        s = AioSession(session) if session else self.session
+        resp = await s.get(url, headers=headers, params=params or {},
+                           timeout=timeout)
+        data: dict = await resp.json()
+        return data
+
     async def close(self):
         await self.session.close()
 
@@ -742,6 +757,21 @@ class Storage:
         data: dict = await resp.json()
         return data
 
+    async def get_bucket_metadata(self, bucket: str, *, params: dict = None,
+                                  session: Optional[Session] = None,
+                                  timeout: int = 10) -&gt; dict:
+        token = await self.token.get()
+        url = f&#39;{API_ROOT}/{bucket}/&#39;
+        headers = {
+            &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
+        }
+
+        s = AioSession(session) if session else self.session
+        resp = await s.get(url, headers=headers, params=params or {},
+                           timeout=timeout)
+        data: dict = await resp.json()
+        return data
+
     async def close(self):
         await self.session.close()
 
@@ -924,6 +954,31 @@ copy operation, you then have 1 week to complete the copy job.</p>
     return Bucket(self, bucket_name)</code></pre>
 </details>
 </dd>
+<dt id="gcloud.aio.storage.storage.Storage.get_bucket_metadata"><code class="name flex">
+<span>async def <span class="ident">get_bucket_metadata</span></span>(<span>self, bucket, *, params=None, session=None, timeout=10)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def get_bucket_metadata(self, bucket: str, *, params: dict = None,
+                              session: Optional[Session] = None,
+                              timeout: int = 10) -&gt; dict:
+    token = await self.token.get()
+    url = f&#39;{API_ROOT}/{bucket}/&#39;
+    headers = {
+        &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
+    }
+
+    s = AioSession(session) if session else self.session
+    resp = await s.get(url, headers=headers, params=params or {},
+                       timeout=timeout)
+    data: dict = await resp.json()
+    return data</code></pre>
+</details>
+</dd>
 <dt id="gcloud.aio.storage.storage.Storage.list_objects"><code class="name flex">
 <span>async def <span class="ident">list_objects</span></span>(<span>self, bucket, *, params=None, session=None, timeout=10)</span>
 </code></dt>
@@ -1063,6 +1118,7 @@ copy operation, you then have 1 week to complete the copy job.</p>
 <li><code><a title="gcloud.aio.storage.storage.Storage.download" href="#gcloud.aio.storage.storage.Storage.download">download</a></code></li>
 <li><code><a title="gcloud.aio.storage.storage.Storage.download_metadata" href="#gcloud.aio.storage.storage.Storage.download_metadata">download_metadata</a></code></li>
 <li><code><a title="gcloud.aio.storage.storage.Storage.get_bucket" href="#gcloud.aio.storage.storage.Storage.get_bucket">get_bucket</a></code></li>
+<li><code><a title="gcloud.aio.storage.storage.Storage.get_bucket_metadata" href="#gcloud.aio.storage.storage.Storage.get_bucket_metadata">get_bucket_metadata</a></code></li>
 <li><code><a title="gcloud.aio.storage.storage.Storage.list_objects" href="#gcloud.aio.storage.storage.Storage.list_objects">list_objects</a></code></li>
 <li><code><a title="gcloud.aio.storage.storage.Storage.upload" href="#gcloud.aio.storage.storage.Storage.upload">upload</a></code></li>
 </ul>
