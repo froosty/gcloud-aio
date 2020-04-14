@@ -27,6 +27,7 @@
 <pre><code class="python">import io
 import json
 import uuid
+from enum import Enum
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -50,6 +51,21 @@ SCOPES = [
     &#39;https://www.googleapis.com/auth/bigquery.insertdata&#39;,
     &#39;https://www.googleapis.com/auth/bigquery&#39;,
 ]
+
+
+class SourceFormat(Enum):
+    AVRO = &#39;AVRO&#39;
+    CSV = &#39;CSV&#39;
+    DATASTORE_BACKUP = &#39;DATASTORE_BACKUP&#39;
+    NEWLINE_DELIMITED_JSON = &#39;NEWLINE_DELIMITED_JSON&#39;
+    ORC = &#39;ORC&#39;
+    PARQUET = &#39;PARQUET&#39;
+
+
+class Disposition(Enum):
+    WRITE_APPEND = &#39;WRITE_APPEND&#39;
+    WRITE_EMPTY = &#39;WRITE_EMPTY&#39;
+    WRITE_TRUNCATE = &#39;WRITE_TRUNCATE&#39;
 
 
 class Table:
@@ -119,13 +135,33 @@ class Table:
         }
 
     def _make_load_body(
-            self, source_uris: List[str], project: str) -&gt; Dict[str, Any]:
+            self, source_uris: List[str], project: str, autodetect: bool,
+            source_format: SourceFormat, write_disposition: Disposition,
+    ) -&gt; Dict[str, Any]:
         return {
             &#39;configuration&#39;: {
                 &#39;load&#39;: {
+                    &#39;autodetect&#39;: autodetect,
                     &#39;sourceUris&#39;: source_uris,
-                    &#39;sourceFormat&#39;: &#39;DATASTORE_BACKUP&#39;,
-                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
+                    &#39;sourceFormat&#39;: source_format.value,
+                    &#39;writeDisposition&#39;: write_disposition.value,
+                    &#39;destinationTable&#39;: {
+                        &#39;projectId&#39;: project,
+                        &#39;datasetId&#39;: self.dataset_name,
+                        &#39;tableId&#39;: self.table_name,
+                    },
+                },
+            },
+        }
+
+    def _make_query_body(
+            self, query: str, project: str, write_disposition: Disposition,
+    ) -&gt; Dict[str, Any]:
+        return {
+            &#39;configuration&#39;: {
+                &#39;query&#39;: {
+                    &#39;query&#39;: query,
+                    &#39;writeDisposition&#39;: write_disposition.value,
                     &#39;destinationTable&#39;: {
                         &#39;projectId&#39;: project,
                         &#39;datasetId&#39;: self.dataset_name,
@@ -141,17 +177,10 @@ class Table:
             &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
         }
 
-    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-    async def copy(self, destination_project: str, destination_dataset: str,
-                   destination_table: str, session: Optional[Session] = None,
-                   timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
-        project = await self.project()
-        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
-
-        body = self._make_copy_body(
-            project, destination_project,
-            destination_dataset, destination_table)
+    async def _post_json(
+            self, url: str, body: Dict[str, Any],
+            session: Optional[Session] = None,
+            timeout: int = 60) -&gt; Dict[str, Any]:
         payload = json.dumps(body).encode(&#39;utf-8&#39;)
 
         headers = await self.headers()
@@ -161,9 +190,25 @@ class Table:
         })
 
         s = AioSession(session) if session else self.session
-        resp = await s.post(url, data=payload, headers=headers, params=None,
-                            timeout=timeout)
+        resp = await s.post(
+            url, data=payload, headers=headers, params=None, timeout=timeout,
+        )
         return await resp.json()
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    async def insert_via_copy(
+            self, destination_project: str, destination_dataset: str,
+            destination_table: str, session: Optional[Session] = None,
+            timeout: int = 60,
+    ) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
+        project = await self.project()
+        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
+        body = self._make_copy_body(
+            project, destination_project,
+            destination_dataset, destination_table)
+        return await self._post_json(url, body, session, timeout)
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
     async def delete(self,
@@ -210,7 +255,7 @@ class Table:
             self, rows: List[Dict[str, Any]], skip_invalid: bool = False,
             ignore_unknown: bool = True, session: Optional[Session] = None,
             timeout: int = 60, *,
-            insert_id_fn: Optional[Callable[[Dict[str, Any]], str]] = None
+            insert_id_fn: Optional[Callable[[Dict[str, Any]], str]] = None,
     ) -&gt; Dict[str, Any]:
         &#34;&#34;&#34;
         Streams data into BigQuery
@@ -232,23 +277,17 @@ class Table:
         body = self._make_insert_body(
             rows, skip_invalid=skip_invalid, ignore_unknown=ignore_unknown,
             insert_id_fn=insert_id_fn or self._mk_unique_insert_id)
-        payload = json.dumps(body).encode(&#39;utf-8&#39;)
-
-        headers = await self.headers()
-        headers.update({
-            &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;,
-        })
-
-        s = AioSession(session) if session else self.session
-        resp = await s.post(url, data=payload, headers=headers, params=None,
-                            timeout=timeout)
-        return await resp.json()
+        return await self._post_json(url, body, session, timeout)
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-    async def load(
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#JobConfigurationLoad
+    async def insert_via_load(
             self, source_uris: List[str], session: Optional[Session] = None,
-            timeout: int = 60) -&gt; Dict[str, Any]:
+            autodetect: bool = False,
+            source_format: SourceFormat = SourceFormat.CSV,
+            write_disposition: Disposition = Disposition.WRITE_TRUNCATE,
+            timeout: int = 60,
+    ) -&gt; Dict[str, Any]:
         &#34;&#34;&#34;Loads entities from storage to BigQuery.&#34;&#34;&#34;
         if not source_uris:
             return {}
@@ -256,19 +295,27 @@ class Table:
         project = await self.project()
         url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
 
-        body = self._make_load_body(source_uris, project)
-        payload = json.dumps(body).encode(&#39;utf-8&#39;)
+        body = self._make_load_body(
+            source_uris, project, autodetect, source_format, write_disposition,
+        )
+        return await self._post_json(url, body, session, timeout)
 
-        headers = await self.headers()
-        headers.update({
-            &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;,
-        })
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#JobConfigurationQuery
+    async def insert_via_query(
+            self, query: str, session: Optional[Session] = None,
+            write_disposition: Disposition = Disposition.WRITE_EMPTY,
+            timeout: int = 60,
+    ) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Create table as a result of the query&#34;&#34;&#34;
+        if not query:
+            return {}
 
-        s = AioSession(session) if session else self.session
-        resp = await s.post(url, data=payload, headers=headers, params=None,
-                            timeout=timeout)
-        return await resp.json()
+        project = await self.project()
+        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
+        body = self._make_query_body(query, project, write_disposition)
+        return await self._post_json(url, body, session, timeout)
 
     async def close(self):
         await self.session.close()
@@ -289,6 +336,91 @@ class Table:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="gcloud.aio.bigquery.bigquery.Disposition"><code class="flex name class">
+<span>class <span class="ident">Disposition</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Disposition(Enum):
+    WRITE_APPEND = &#39;WRITE_APPEND&#39;
+    WRITE_EMPTY = &#39;WRITE_EMPTY&#39;
+    WRITE_TRUNCATE = &#39;WRITE_TRUNCATE&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="gcloud.aio.bigquery.bigquery.Disposition.WRITE_APPEND"><code class="name">var <span class="ident">WRITE_APPEND</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.Disposition.WRITE_EMPTY"><code class="name">var <span class="ident">WRITE_EMPTY</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.Disposition.WRITE_TRUNCATE"><code class="name">var <span class="ident">WRITE_TRUNCATE</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.SourceFormat"><code class="flex name class">
+<span>class <span class="ident">SourceFormat</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SourceFormat(Enum):
+    AVRO = &#39;AVRO&#39;
+    CSV = &#39;CSV&#39;
+    DATASTORE_BACKUP = &#39;DATASTORE_BACKUP&#39;
+    NEWLINE_DELIMITED_JSON = &#39;NEWLINE_DELIMITED_JSON&#39;
+    ORC = &#39;ORC&#39;
+    PARQUET = &#39;PARQUET&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="gcloud.aio.bigquery.bigquery.SourceFormat.AVRO"><code class="name">var <span class="ident">AVRO</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.SourceFormat.CSV"><code class="name">var <span class="ident">CSV</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.SourceFormat.DATASTORE_BACKUP"><code class="name">var <span class="ident">DATASTORE_BACKUP</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.SourceFormat.NEWLINE_DELIMITED_JSON"><code class="name">var <span class="ident">NEWLINE_DELIMITED_JSON</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.SourceFormat.ORC"><code class="name">var <span class="ident">ORC</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.SourceFormat.PARQUET"><code class="name">var <span class="ident">PARQUET</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+</dd>
 <dt id="gcloud.aio.bigquery.bigquery.Table"><code class="flex name class">
 <span>class <span class="ident">Table</span></span>
 <span>(</span><span>dataset_name, table_name, project=None, service_file=None, session=None, token=None)</span>
@@ -366,13 +498,33 @@ class Table:
         }
 
     def _make_load_body(
-            self, source_uris: List[str], project: str) -&gt; Dict[str, Any]:
+            self, source_uris: List[str], project: str, autodetect: bool,
+            source_format: SourceFormat, write_disposition: Disposition,
+    ) -&gt; Dict[str, Any]:
         return {
             &#39;configuration&#39;: {
                 &#39;load&#39;: {
+                    &#39;autodetect&#39;: autodetect,
                     &#39;sourceUris&#39;: source_uris,
-                    &#39;sourceFormat&#39;: &#39;DATASTORE_BACKUP&#39;,
-                    &#39;writeDisposition&#39;: &#39;WRITE_TRUNCATE&#39;,
+                    &#39;sourceFormat&#39;: source_format.value,
+                    &#39;writeDisposition&#39;: write_disposition.value,
+                    &#39;destinationTable&#39;: {
+                        &#39;projectId&#39;: project,
+                        &#39;datasetId&#39;: self.dataset_name,
+                        &#39;tableId&#39;: self.table_name,
+                    },
+                },
+            },
+        }
+
+    def _make_query_body(
+            self, query: str, project: str, write_disposition: Disposition,
+    ) -&gt; Dict[str, Any]:
+        return {
+            &#39;configuration&#39;: {
+                &#39;query&#39;: {
+                    &#39;query&#39;: query,
+                    &#39;writeDisposition&#39;: write_disposition.value,
                     &#39;destinationTable&#39;: {
                         &#39;projectId&#39;: project,
                         &#39;datasetId&#39;: self.dataset_name,
@@ -388,17 +540,10 @@ class Table:
             &#39;Authorization&#39;: f&#39;Bearer {token}&#39;,
         }
 
-    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-    async def copy(self, destination_project: str, destination_dataset: str,
-                   destination_table: str, session: Optional[Session] = None,
-                   timeout: int = 60) -&gt; Dict[str, Any]:
-        &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
-        project = await self.project()
-        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
-
-        body = self._make_copy_body(
-            project, destination_project,
-            destination_dataset, destination_table)
+    async def _post_json(
+            self, url: str, body: Dict[str, Any],
+            session: Optional[Session] = None,
+            timeout: int = 60) -&gt; Dict[str, Any]:
         payload = json.dumps(body).encode(&#39;utf-8&#39;)
 
         headers = await self.headers()
@@ -408,9 +553,25 @@ class Table:
         })
 
         s = AioSession(session) if session else self.session
-        resp = await s.post(url, data=payload, headers=headers, params=None,
-                            timeout=timeout)
+        resp = await s.post(
+            url, data=payload, headers=headers, params=None, timeout=timeout,
+        )
         return await resp.json()
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    async def insert_via_copy(
+            self, destination_project: str, destination_dataset: str,
+            destination_table: str, session: Optional[Session] = None,
+            timeout: int = 60,
+    ) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
+        project = await self.project()
+        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
+        body = self._make_copy_body(
+            project, destination_project,
+            destination_dataset, destination_table)
+        return await self._post_json(url, body, session, timeout)
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
     async def delete(self,
@@ -457,7 +618,7 @@ class Table:
             self, rows: List[Dict[str, Any]], skip_invalid: bool = False,
             ignore_unknown: bool = True, session: Optional[Session] = None,
             timeout: int = 60, *,
-            insert_id_fn: Optional[Callable[[Dict[str, Any]], str]] = None
+            insert_id_fn: Optional[Callable[[Dict[str, Any]], str]] = None,
     ) -&gt; Dict[str, Any]:
         &#34;&#34;&#34;
         Streams data into BigQuery
@@ -479,23 +640,17 @@ class Table:
         body = self._make_insert_body(
             rows, skip_invalid=skip_invalid, ignore_unknown=ignore_unknown,
             insert_id_fn=insert_id_fn or self._mk_unique_insert_id)
-        payload = json.dumps(body).encode(&#39;utf-8&#39;)
-
-        headers = await self.headers()
-        headers.update({
-            &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;,
-        })
-
-        s = AioSession(session) if session else self.session
-        resp = await s.post(url, data=payload, headers=headers, params=None,
-                            timeout=timeout)
-        return await resp.json()
+        return await self._post_json(url, body, session, timeout)
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-    async def load(
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#JobConfigurationLoad
+    async def insert_via_load(
             self, source_uris: List[str], session: Optional[Session] = None,
-            timeout: int = 60) -&gt; Dict[str, Any]:
+            autodetect: bool = False,
+            source_format: SourceFormat = SourceFormat.CSV,
+            write_disposition: Disposition = Disposition.WRITE_TRUNCATE,
+            timeout: int = 60,
+    ) -&gt; Dict[str, Any]:
         &#34;&#34;&#34;Loads entities from storage to BigQuery.&#34;&#34;&#34;
         if not source_uris:
             return {}
@@ -503,19 +658,27 @@ class Table:
         project = await self.project()
         url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
 
-        body = self._make_load_body(source_uris, project)
-        payload = json.dumps(body).encode(&#39;utf-8&#39;)
+        body = self._make_load_body(
+            source_uris, project, autodetect, source_format, write_disposition,
+        )
+        return await self._post_json(url, body, session, timeout)
 
-        headers = await self.headers()
-        headers.update({
-            &#39;Content-Length&#39;: str(len(payload)),
-            &#39;Content-Type&#39;: &#39;application/json&#39;,
-        })
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#JobConfigurationQuery
+    async def insert_via_query(
+            self, query: str, session: Optional[Session] = None,
+            write_disposition: Disposition = Disposition.WRITE_EMPTY,
+            timeout: int = 60,
+    ) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Create table as a result of the query&#34;&#34;&#34;
+        if not query:
+            return {}
 
-        s = AioSession(session) if session else self.session
-        resp = await s.post(url, data=payload, headers=headers, params=None,
-                            timeout=timeout)
-        return await resp.json()
+        project = await self.project()
+        url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
+        body = self._make_query_body(query, project, write_disposition)
+        return await self._post_json(url, body, session, timeout)
 
     async def close(self):
         await self.session.close()
@@ -539,39 +702,6 @@ class Table:
 </summary>
 <pre><code class="python">async def close(self):
     await self.session.close()</code></pre>
-</details>
-</dd>
-<dt id="gcloud.aio.bigquery.bigquery.Table.copy"><code class="name flex">
-<span>async def <span class="ident">copy</span></span>(<span>self, destination_project, destination_dataset, destination_table, session=None, timeout=60)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Copy BQ table to another table in BQ</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def copy(self, destination_project: str, destination_dataset: str,
-               destination_table: str, session: Optional[Session] = None,
-               timeout: int = 60) -&gt; Dict[str, Any]:
-    &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
-    project = await self.project()
-    url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
-
-    body = self._make_copy_body(
-        project, destination_project,
-        destination_dataset, destination_table)
-    payload = json.dumps(body).encode(&#39;utf-8&#39;)
-
-    headers = await self.headers()
-    headers.update({
-        &#39;Content-Length&#39;: str(len(payload)),
-        &#39;Content-Type&#39;: &#39;application/json&#39;,
-    })
-
-    s = AioSession(session) if session else self.session
-    resp = await s.post(url, data=payload, headers=headers, params=None,
-                        timeout=timeout)
-    return await resp.json()</code></pre>
 </details>
 </dd>
 <dt id="gcloud.aio.bigquery.bigquery.Table.delete"><code class="name flex">
@@ -666,7 +796,7 @@ the rows failed to get inserted.</p></section>
         self, rows: List[Dict[str, Any]], skip_invalid: bool = False,
         ignore_unknown: bool = True, session: Optional[Session] = None,
         timeout: int = 60, *,
-        insert_id_fn: Optional[Callable[[Dict[str, Any]], str]] = None
+        insert_id_fn: Optional[Callable[[Dict[str, Any]], str]] = None,
 ) -&gt; Dict[str, Any]:
     &#34;&#34;&#34;
     Streams data into BigQuery
@@ -688,22 +818,35 @@ the rows failed to get inserted.</p></section>
     body = self._make_insert_body(
         rows, skip_invalid=skip_invalid, ignore_unknown=ignore_unknown,
         insert_id_fn=insert_id_fn or self._mk_unique_insert_id)
-    payload = json.dumps(body).encode(&#39;utf-8&#39;)
-
-    headers = await self.headers()
-    headers.update({
-        &#39;Content-Length&#39;: str(len(payload)),
-        &#39;Content-Type&#39;: &#39;application/json&#39;,
-    })
-
-    s = AioSession(session) if session else self.session
-    resp = await s.post(url, data=payload, headers=headers, params=None,
-                        timeout=timeout)
-    return await resp.json()</code></pre>
+    return await self._post_json(url, body, session, timeout)</code></pre>
 </details>
 </dd>
-<dt id="gcloud.aio.bigquery.bigquery.Table.load"><code class="name flex">
-<span>async def <span class="ident">load</span></span>(<span>self, source_uris, session=None, timeout=60)</span>
+<dt id="gcloud.aio.bigquery.bigquery.Table.insert_via_copy"><code class="name flex">
+<span>async def <span class="ident">insert_via_copy</span></span>(<span>self, destination_project, destination_dataset, destination_table, session=None, timeout=60)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Copy BQ table to another table in BQ</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def insert_via_copy(
+        self, destination_project: str, destination_dataset: str,
+        destination_table: str, session: Optional[Session] = None,
+        timeout: int = 60,
+) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
+    project = await self.project()
+    url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
+
+    body = self._make_copy_body(
+        project, destination_project,
+        destination_dataset, destination_table)
+    return await self._post_json(url, body, session, timeout)</code></pre>
+</details>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.Table.insert_via_load"><code class="name flex">
+<span>async def <span class="ident">insert_via_load</span></span>(<span>self, source_uris, session=None, autodetect=False, source_format=SourceFormat.CSV, write_disposition=Disposition.WRITE_TRUNCATE, timeout=60)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Loads entities from storage to BigQuery.</p></section>
@@ -711,9 +854,13 @@ the rows failed to get inserted.</p></section>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def load(
+<pre><code class="python">async def insert_via_load(
         self, source_uris: List[str], session: Optional[Session] = None,
-        timeout: int = 60) -&gt; Dict[str, Any]:
+        autodetect: bool = False,
+        source_format: SourceFormat = SourceFormat.CSV,
+        write_disposition: Disposition = Disposition.WRITE_TRUNCATE,
+        timeout: int = 60,
+) -&gt; Dict[str, Any]:
     &#34;&#34;&#34;Loads entities from storage to BigQuery.&#34;&#34;&#34;
     if not source_uris:
         return {}
@@ -721,19 +868,35 @@ the rows failed to get inserted.</p></section>
     project = await self.project()
     url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
 
-    body = self._make_load_body(source_uris, project)
-    payload = json.dumps(body).encode(&#39;utf-8&#39;)
+    body = self._make_load_body(
+        source_uris, project, autodetect, source_format, write_disposition,
+    )
+    return await self._post_json(url, body, session, timeout)</code></pre>
+</details>
+</dd>
+<dt id="gcloud.aio.bigquery.bigquery.Table.insert_via_query"><code class="name flex">
+<span>async def <span class="ident">insert_via_query</span></span>(<span>self, query, session=None, write_disposition=Disposition.WRITE_EMPTY, timeout=60)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Create table as a result of the query</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def insert_via_query(
+        self, query: str, session: Optional[Session] = None,
+        write_disposition: Disposition = Disposition.WRITE_EMPTY,
+        timeout: int = 60,
+) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;Create table as a result of the query&#34;&#34;&#34;
+    if not query:
+        return {}
 
-    headers = await self.headers()
-    headers.update({
-        &#39;Content-Length&#39;: str(len(payload)),
-        &#39;Content-Type&#39;: &#39;application/json&#39;,
-    })
+    project = await self.project()
+    url = f&#39;{API_ROOT}/projects/{project}/jobs&#39;
 
-    s = AioSession(session) if session else self.session
-    resp = await s.post(url, data=payload, headers=headers, params=None,
-                        timeout=timeout)
-    return await resp.json()</code></pre>
+    body = self._make_query_body(query, project, write_disposition)
+    return await self._post_json(url, body, session, timeout)</code></pre>
 </details>
 </dd>
 <dt id="gcloud.aio.bigquery.bigquery.Table.project"><code class="name flex">
@@ -775,15 +938,35 @@ the rows failed to get inserted.</p></section>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="gcloud.aio.bigquery.bigquery.Disposition" href="#gcloud.aio.bigquery.bigquery.Disposition">Disposition</a></code></h4>
+<ul class="">
+<li><code><a title="gcloud.aio.bigquery.bigquery.Disposition.WRITE_APPEND" href="#gcloud.aio.bigquery.bigquery.Disposition.WRITE_APPEND">WRITE_APPEND</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.Disposition.WRITE_EMPTY" href="#gcloud.aio.bigquery.bigquery.Disposition.WRITE_EMPTY">WRITE_EMPTY</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.Disposition.WRITE_TRUNCATE" href="#gcloud.aio.bigquery.bigquery.Disposition.WRITE_TRUNCATE">WRITE_TRUNCATE</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="gcloud.aio.bigquery.bigquery.SourceFormat" href="#gcloud.aio.bigquery.bigquery.SourceFormat">SourceFormat</a></code></h4>
+<ul class="">
+<li><code><a title="gcloud.aio.bigquery.bigquery.SourceFormat.AVRO" href="#gcloud.aio.bigquery.bigquery.SourceFormat.AVRO">AVRO</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.SourceFormat.CSV" href="#gcloud.aio.bigquery.bigquery.SourceFormat.CSV">CSV</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.SourceFormat.DATASTORE_BACKUP" href="#gcloud.aio.bigquery.bigquery.SourceFormat.DATASTORE_BACKUP">DATASTORE_BACKUP</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.SourceFormat.NEWLINE_DELIMITED_JSON" href="#gcloud.aio.bigquery.bigquery.SourceFormat.NEWLINE_DELIMITED_JSON">NEWLINE_DELIMITED_JSON</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.SourceFormat.ORC" href="#gcloud.aio.bigquery.bigquery.SourceFormat.ORC">ORC</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.SourceFormat.PARQUET" href="#gcloud.aio.bigquery.bigquery.SourceFormat.PARQUET">PARQUET</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="gcloud.aio.bigquery.bigquery.Table" href="#gcloud.aio.bigquery.bigquery.Table">Table</a></code></h4>
 <ul class="two-column">
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.close" href="#gcloud.aio.bigquery.bigquery.Table.close">close</a></code></li>
-<li><code><a title="gcloud.aio.bigquery.bigquery.Table.copy" href="#gcloud.aio.bigquery.bigquery.Table.copy">copy</a></code></li>
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.delete" href="#gcloud.aio.bigquery.bigquery.Table.delete">delete</a></code></li>
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.get" href="#gcloud.aio.bigquery.bigquery.Table.get">get</a></code></li>
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.headers" href="#gcloud.aio.bigquery.bigquery.Table.headers">headers</a></code></li>
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.insert" href="#gcloud.aio.bigquery.bigquery.Table.insert">insert</a></code></li>
-<li><code><a title="gcloud.aio.bigquery.bigquery.Table.load" href="#gcloud.aio.bigquery.bigquery.Table.load">load</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.Table.insert_via_copy" href="#gcloud.aio.bigquery.bigquery.Table.insert_via_copy">insert_via_copy</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.Table.insert_via_load" href="#gcloud.aio.bigquery.bigquery.Table.insert_via_load">insert_via_load</a></code></li>
+<li><code><a title="gcloud.aio.bigquery.bigquery.Table.insert_via_query" href="#gcloud.aio.bigquery.bigquery.Table.insert_via_query">insert_via_query</a></code></li>
 <li><code><a title="gcloud.aio.bigquery.bigquery.Table.project" href="#gcloud.aio.bigquery.bigquery.Table.project">project</a></code></li>
 </ul>
 </li>
