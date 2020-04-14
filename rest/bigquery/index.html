@@ -33,13 +33,13 @@ standard_library.install_aliases()
 from pkg_resources import get_distribution
 __version__ = get_distribution(&#39;gcloud-rest-bigquery&#39;).version
 
+from gcloud.rest.bigquery.bigquery import Disposition
 from gcloud.rest.bigquery.bigquery import SCOPES
 from gcloud.rest.bigquery.bigquery import SourceFormat
-from gcloud.rest.bigquery.bigquery import Disposition
 from gcloud.rest.bigquery.bigquery import Table
 
 
-__all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39;Disposition&#39;, &#39;Table&#39;]</code></pre>
+__all__ = [&#39;__version__&#39;, &#39;Disposition&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39;Table&#39;]</code></pre>
 </details>
 </section>
 <section>
@@ -222,8 +222,8 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
 
     def _make_load_body(
             self, source_uris           , project     , autodetect      ,
-            source_format              , write_disposition             ,
-    )                  :
+            source_format              ,
+            write_disposition             )                  :
         return {
             &#39;configuration&#39;: {
                 &#39;load&#39;: {
@@ -241,8 +241,8 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
         }
 
     def _make_query_body(
-            self, query     , project     , write_disposition             ,
-    )                  :
+            self, query     , project     ,
+            write_disposition             )                  :
         return {
             &#39;configuration&#39;: {
                 &#39;query&#39;: {
@@ -264,9 +264,8 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
         }
 
     def _post_json(
-            self, url     , body                ,
-            session                    = None,
-            timeout      = 60)                  :
+            self, url     , body                , session                   ,
+            timeout     )                  :
         payload = json.dumps(body).encode(&#39;utf-8&#39;)
 
         headers = self.headers()
@@ -276,25 +275,9 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
         })
 
         s = SyncSession(session) if session else self.session
-        resp = s.post(
-            url, data=payload, headers=headers, params=None, timeout=timeout,
-        )
+        resp = s.post(url, data=payload, headers=headers, params=None,
+                            timeout=timeout)
         return resp.json()
-
-    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
-    def insert_via_copy(
-            self, destination_project     , destination_dataset     ,
-            destination_table     , session                    = None,
-            timeout      = 60,
-    )                  :
-        &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
-        project = self.project()
-        url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
-
-        body = self._make_copy_body(
-            project, destination_project,
-            destination_dataset, destination_table)
-        return self._post_json(url, body, session, timeout)
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/delete
     def delete(self,
@@ -367,14 +350,28 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
         return self._post_json(url, body, session, timeout)
 
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#jobconfigurationtablecopy
+    def insert_via_copy(
+            self, destination_project     , destination_dataset     ,
+            destination_table     , session                    = None,
+            timeout      = 60)                  :
+        &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
+        project = self.project()
+        url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
+
+        body = self._make_copy_body(
+            project, destination_project,
+            destination_dataset, destination_table)
+        return self._post_json(url, body, session, timeout)
+
+    # https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert
     # https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#JobConfigurationLoad
     def insert_via_load(
             self, source_uris           , session                    = None,
             autodetect       = False,
             source_format               = SourceFormat.CSV,
             write_disposition              = Disposition.WRITE_TRUNCATE,
-            timeout      = 60,
-    )                  :
+            timeout      = 60)                  :
         &#34;&#34;&#34;Loads entities from storage to BigQuery.&#34;&#34;&#34;
         if not source_uris:
             return {}
@@ -392,8 +389,7 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
     def insert_via_query(
             self, query     , session                    = None,
             write_disposition              = Disposition.WRITE_EMPTY,
-            timeout      = 60,
-    )                  :
+            timeout      = 60)                  :
         &#34;&#34;&#34;Create table as a result of the query&#34;&#34;&#34;
         if not query:
             return {}
@@ -553,8 +549,7 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
 <pre><code class="python">def insert_via_copy(
         self, destination_project     , destination_dataset     ,
         destination_table     , session                    = None,
-        timeout      = 60,
-)                  :
+        timeout      = 60)                  :
     &#34;&#34;&#34;Copy BQ table to another table in BQ&#34;&#34;&#34;
     project = self.project()
     url = &#39;{}/projects/{}/jobs&#39;.format((API_ROOT), (project))
@@ -579,8 +574,7 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
         autodetect       = False,
         source_format               = SourceFormat.CSV,
         write_disposition              = Disposition.WRITE_TRUNCATE,
-        timeout      = 60,
-)                  :
+        timeout      = 60)                  :
     &#34;&#34;&#34;Loads entities from storage to BigQuery.&#34;&#34;&#34;
     if not source_uris:
         return {}
@@ -606,8 +600,7 @@ __all__ = [&#39;__version__&#39;, &#39;SCOPES&#39;, &#39;SourceFormat&#39;, &#39
 <pre><code class="python">def insert_via_query(
         self, query     , session                    = None,
         write_disposition              = Disposition.WRITE_EMPTY,
-        timeout      = 60,
-)                  :
+        timeout      = 60)                  :
     &#34;&#34;&#34;Create table as a result of the query&#34;&#34;&#34;
     if not query:
         return {}
