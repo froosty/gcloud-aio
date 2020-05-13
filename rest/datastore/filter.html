@@ -42,7 +42,7 @@ from gcloud.rest.datastore.value import Value
 
 
 class BaseFilter(object):
-    #son_key: str
+    #json_key: str
 
     def __repr__(self)       :
         return str(self.to_repr())
@@ -167,7 +167,7 @@ class PropertyFilter(BaseFilter):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class BaseFilter(object):
-    #son_key: str
+    #json_key: str
 
     def __repr__(self)       :
         return str(self.to_repr())
