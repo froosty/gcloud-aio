@@ -2302,7 +2302,7 @@ def from_repr(cls, data                )                   :
 </dd>
 <dt id="gcloud.rest.datastore.Query"><code class="flex name class">
 <span>class <span class="ident">Query</span></span>
-<span>(</span><span>kind='', query_filter=None, order=None, start_cursor='', end_cursor='', offset=0, limit=0, projection=None, distinct_on=None)</span>
+<span>(</span><span>kind='', query_filter=None, order=None, start_cursor='', end_cursor='', offset=None, limit=None, projection=None, distinct_on=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2316,7 +2316,8 @@ def from_repr(cls, data                )                   :
 
     def __init__(self, kind      = &#39;&#39;, query_filter         = None,
                  order                      = None, start_cursor      = &#39;&#39;,
-                 end_cursor      = &#39;&#39;, offset      = 0, limit      = 0,
+                 end_cursor      = &#39;&#39;, offset                = None,
+                 limit                = None,
                  projection                   = None,
                  distinct_on            = None)        :
         self.kind = kind
@@ -2343,8 +2344,8 @@ def from_repr(cls, data                )                   :
         orders = [PropertyOrder.from_repr(o) for o in data.get(&#39;order&#39;, [])]
         start_cursor = data.get(&#39;startCursor&#39;) or &#39;&#39;
         end_cursor = data.get(&#39;endCursor&#39;) or &#39;&#39;
-        offset = int(data.get(&#39;offset&#39;) or 0)
-        limit = int(data.get(&#39;limit&#39;) or 0)
+        offset = int(data[&#39;offset&#39;]) if &#39;offset&#39; in data else None
+        limit = int(data[&#39;limit&#39;]) if &#39;limit&#39; in data else None
         projection = [Projection.from_repr(p)
                       for p in data.get(&#39;projection&#39;, [])]
         distinct_on = [d[&#39;name&#39;] for d in data.get(&#39;distinct_on&#39;, [])]
@@ -2367,9 +2368,9 @@ def from_repr(cls, data                )                   :
             data[&#39;startCursor&#39;] = self.start_cursor
         if self.end_cursor:
             data[&#39;endCursor&#39;] = self.end_cursor
-        if self.offset:
+        if self.offset is not None:
             data[&#39;offset&#39;] = self.offset
-        if self.limit:
+        if self.limit is not None:
             data[&#39;limit&#39;] = self.limit
         if self.projection:
             data[&#39;projection&#39;] = [p.to_repr() for p in self.projection]
@@ -2405,8 +2406,8 @@ def from_repr(cls, data                )           :
     orders = [PropertyOrder.from_repr(o) for o in data.get(&#39;order&#39;, [])]
     start_cursor = data.get(&#39;startCursor&#39;) or &#39;&#39;
     end_cursor = data.get(&#39;endCursor&#39;) or &#39;&#39;
-    offset = int(data.get(&#39;offset&#39;) or 0)
-    limit = int(data.get(&#39;limit&#39;) or 0)
+    offset = int(data[&#39;offset&#39;]) if &#39;offset&#39; in data else None
+    limit = int(data[&#39;limit&#39;]) if &#39;limit&#39; in data else None
     projection = [Projection.from_repr(p)
                   for p in data.get(&#39;projection&#39;, [])]
     distinct_on = [d[&#39;name&#39;] for d in data.get(&#39;distinct_on&#39;, [])]
@@ -2442,9 +2443,9 @@ def from_repr(cls, data                )           :
         data[&#39;startCursor&#39;] = self.start_cursor
     if self.end_cursor:
         data[&#39;endCursor&#39;] = self.end_cursor
-    if self.offset:
+    if self.offset is not None:
         data[&#39;offset&#39;] = self.offset
-    if self.limit:
+    if self.limit is not None:
         data[&#39;limit&#39;] = self.limit
     if self.projection:
         data[&#39;projection&#39;] = [p.to_repr() for p in self.projection]

@@ -2293,7 +2293,7 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;PropertyOrder&#39;:
 </dd>
 <dt id="gcloud.aio.datastore.Query"><code class="flex name class">
 <span>class <span class="ident">Query</span></span>
-<span>(</span><span>kind: str = '', query_filter: <a title="gcloud.aio.datastore.filter.Filter" href="filter.html#gcloud.aio.datastore.filter.Filter">Filter</a> = None, order: List[<a title="gcloud.aio.datastore.property_order.PropertyOrder" href="property_order.html#gcloud.aio.datastore.property_order.PropertyOrder">PropertyOrder</a>] = None, start_cursor: str = '', end_cursor: str = '', offset: int = 0, limit: int = 0, projection: List[<a title="gcloud.aio.datastore.projection.Projection" href="projection.html#gcloud.aio.datastore.projection.Projection">Projection</a>] = None, distinct_on: List[str] = None)</span>
+<span>(</span><span>kind: str = '', query_filter: <a title="gcloud.aio.datastore.filter.Filter" href="filter.html#gcloud.aio.datastore.filter.Filter">Filter</a> = None, order: List[<a title="gcloud.aio.datastore.property_order.PropertyOrder" href="property_order.html#gcloud.aio.datastore.property_order.PropertyOrder">PropertyOrder</a>] = None, start_cursor: str = '', end_cursor: str = '', offset: Union[int, NoneType] = None, limit: Union[int, NoneType] = None, projection: List[<a title="gcloud.aio.datastore.projection.Projection" href="projection.html#gcloud.aio.datastore.projection.Projection">Projection</a>] = None, distinct_on: List[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2307,7 +2307,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;PropertyOrder&#39;:
 
     def __init__(self, kind: str = &#39;&#39;, query_filter: Filter = None,
                  order: List[PropertyOrder] = None, start_cursor: str = &#39;&#39;,
-                 end_cursor: str = &#39;&#39;, offset: int = 0, limit: int = 0,
+                 end_cursor: str = &#39;&#39;, offset: Optional[int] = None,
+                 limit: Optional[int] = None,
                  projection: List[Projection] = None,
                  distinct_on: List[str] = None) -&gt; None:
         self.kind = kind
@@ -2334,8 +2335,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;PropertyOrder&#39;:
         orders = [PropertyOrder.from_repr(o) for o in data.get(&#39;order&#39;, [])]
         start_cursor = data.get(&#39;startCursor&#39;) or &#39;&#39;
         end_cursor = data.get(&#39;endCursor&#39;) or &#39;&#39;
-        offset = int(data.get(&#39;offset&#39;) or 0)
-        limit = int(data.get(&#39;limit&#39;) or 0)
+        offset = int(data[&#39;offset&#39;]) if &#39;offset&#39; in data else None
+        limit = int(data[&#39;limit&#39;]) if &#39;limit&#39; in data else None
         projection = [Projection.from_repr(p)
                       for p in data.get(&#39;projection&#39;, [])]
         distinct_on = [d[&#39;name&#39;] for d in data.get(&#39;distinct_on&#39;, [])]
@@ -2358,9 +2359,9 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;PropertyOrder&#39;:
             data[&#39;startCursor&#39;] = self.start_cursor
         if self.end_cursor:
             data[&#39;endCursor&#39;] = self.end_cursor
-        if self.offset:
+        if self.offset is not None:
             data[&#39;offset&#39;] = self.offset
-        if self.limit:
+        if self.limit is not None:
             data[&#39;limit&#39;] = self.limit
         if self.projection:
             data[&#39;projection&#39;] = [p.to_repr() for p in self.projection]
@@ -2396,8 +2397,8 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Query&#39;:
     orders = [PropertyOrder.from_repr(o) for o in data.get(&#39;order&#39;, [])]
     start_cursor = data.get(&#39;startCursor&#39;) or &#39;&#39;
     end_cursor = data.get(&#39;endCursor&#39;) or &#39;&#39;
-    offset = int(data.get(&#39;offset&#39;) or 0)
-    limit = int(data.get(&#39;limit&#39;) or 0)
+    offset = int(data[&#39;offset&#39;]) if &#39;offset&#39; in data else None
+    limit = int(data[&#39;limit&#39;]) if &#39;limit&#39; in data else None
     projection = [Projection.from_repr(p)
                   for p in data.get(&#39;projection&#39;, [])]
     distinct_on = [d[&#39;name&#39;] for d in data.get(&#39;distinct_on&#39;, [])]
@@ -2433,9 +2434,9 @@ def from_repr(cls, data: Dict[str, Any]) -&gt; &#39;Query&#39;:
         data[&#39;startCursor&#39;] = self.start_cursor
     if self.end_cursor:
         data[&#39;endCursor&#39;] = self.end_cursor
-    if self.offset:
+    if self.offset is not None:
         data[&#39;offset&#39;] = self.offset
-    if self.limit:
+    if self.limit is not None:
         data[&#39;limit&#39;] = self.limit
     if self.projection:
         data[&#39;projection&#39;] = [p.to_repr() for p in self.projection]
