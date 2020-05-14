@@ -2675,9 +2675,9 @@ def from_repr(cls, data                )                      :
                     value = base64.b64decode(data[json_key])
                 elif value_type == datetime:
                     date_string = data[json_key].rstrip(&#39;Z&#39;)[:26]
-                    value = datetime.strptime(
-                        date_string, &#39;%Y-%m-%dT%H:%M:%S.%f&#39;
-                        if &#39;.&#39; in date_string else &#39;%Y-%m-%dT%H:%M:%S&#39;)
+                    date_fmt = (&#39;%Y-%m-%dT%H:%M:%S.%f&#39;
+                                if &#39;.&#39; in date_string else &#39;%Y-%m-%dT%H:%M:%S&#39;)
+                    value = datetime.strptime(date_string, date_fmt)
                 elif hasattr(value_type, &#39;from_repr&#39;):
                     value = value_type.from_repr(data[json_key])
                 else:
@@ -2767,9 +2767,9 @@ def from_repr(cls, data                )           :
                 value = base64.b64decode(data[json_key])
             elif value_type == datetime:
                 date_string = data[json_key].rstrip(&#39;Z&#39;)[:26]
-                value = datetime.strptime(
-                    date_string, &#39;%Y-%m-%dT%H:%M:%S.%f&#39;
-                    if &#39;.&#39; in date_string else &#39;%Y-%m-%dT%H:%M:%S&#39;)
+                date_fmt = (&#39;%Y-%m-%dT%H:%M:%S.%f&#39;
+                            if &#39;.&#39; in date_string else &#39;%Y-%m-%dT%H:%M:%S&#39;)
+                value = datetime.strptime(date_string, date_fmt)
             elif hasattr(value_type, &#39;from_repr&#39;):
                 value = value_type.from_repr(data[json_key])
             else:
